@@ -12,11 +12,26 @@
     --unattended
   when: not omz.stat.exists
 
+- name: Link powerlevel10k theme into oh-my-zsh
+  become: false
+  file:
+    src: /usr/share/zsh-theme-powerlevel10k
+    dest: "{{ lookup('env', 'HOME') }}/.oh-my-zsh/custom/themes/powerlevel10k"
+    state: link
+    force: yes
+
 - name: Deploy .zshrc
   become: false
   template:
     src: zshrc.j2
     dest: "{{ lookup('env', 'HOME') }}/.zshrc"
+    backup: yes
+
+- name: Deploy .p10k.zsh
+  become: false
+  copy:
+    src: p10k.zsh
+    dest: "{{ lookup('env', 'HOME') }}/.p10k.zsh"
     backup: yes
 
 - name: Set zsh as default shell

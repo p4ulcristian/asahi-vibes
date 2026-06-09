@@ -1,0 +1,26 @@
+---
+- name: Create hyprpaper config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/hypr"
+    state: directory
+
+- name: Create wallpaper dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/pictures/wallpapers"
+    state: directory
+
+- name: Download Everforest wallpaper
+  become: false
+  get_url:
+    url: "https://raw.githubusercontent.com/Apeiros-46B/everforest-walls/main/png/full/leaves_1.png"
+    dest: "{{ lookup('env', 'HOME') }}/pictures/wallpapers/everforest.png"
+    mode: '0644'
+
+- name: Deploy hyprpaper config
+  become: false
+  template:
+    src: hyprpaper.conf.j2
+    dest: "{{ lookup('env', 'HOME') }}/.config/hypr/hyprpaper.conf"
+    backup: yes

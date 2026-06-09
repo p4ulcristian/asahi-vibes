@@ -1,0 +1,98 @@
+* {
+    font-family: 'JetBrainsMono Nerd Font', monospace;
+    font-size: 13px;
+}
+
+window#waybar {
+    background-color: rgba(30, 35, 38, 0.92);
+    color: #d3c6aa;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    background-color: transparent;
+    color: #859289;
+    border-radius: 4px;
+    margin: 4px 2px;
+}
+
+#workspaces button:hover {
+    background: rgba(167, 192, 128, 0.15);
+    color: #d3c6aa;
+}
+
+#workspaces button.active {
+    color: #a7c080;
+    background-color: rgba(167, 192, 128, 0.2);
+    font-weight: bold;
+}
+
+#workspaces button.urgent {
+    color: #e67e80;
+}
+
+#clock,
+#battery,
+#network,
+#pulseaudio,
+#tray {
+    padding: 0 12px;
+    margin: 4px 2px;
+    border-radius: 4px;
+    color: #2d353b;
+}
+
+#clock {
+    background-color: #a7c080;
+    font-weight: bold;
+}
+
+#battery {
+    background-color: #d699b6;
+}
+
+#battery.charging,
+#battery.plugged {
+    background-color: #83c092;
+}
+
+@keyframes blink {
+    to {
+        background-color: #e67e80;
+        color: #ffffff;
+    }
+}
+
+#battery.critical:not(.charging) {
+    background-color: #e67e80;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#network {
+    background-color: #7fbbb3;
+}
+
+#network.disconnected {
+    background-color: #e67e80;
+}
+
+#pulseaudio {
+    background-color: #dbbc7f;
+}
+
+#pulseaudio.muted {
+    background-color: #4a555b;
+    color: #859289;
+}
+
+#tray {
+    background-color: transparent;
+    color: #d3c6aa;
+    padding: 0 6px;
+}

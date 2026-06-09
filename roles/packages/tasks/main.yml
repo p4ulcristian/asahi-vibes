@@ -18,6 +18,12 @@
       - grim
       - slurp
       - base-devel
+      - hyprpaper
+      - thunar
+      - udiskie
+      - polkit-gnome
+      - ttf-jetbrains-mono-nerd
+      - noto-fonts-emoji
     state: latest
     update_cache: true
 
@@ -27,5 +33,6 @@
   loop:
     - gitkraken
     - anyrun
+    - zsh-theme-powerlevel10k-git
   register: yay_result
   changed_when: "'nothing to do' not in yay_result.stdout"

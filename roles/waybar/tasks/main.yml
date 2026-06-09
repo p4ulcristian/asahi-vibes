@@ -1,0 +1,20 @@
+---
+- name: Create waybar config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/waybar"
+    state: directory
+
+- name: Deploy waybar config
+  become: false
+  copy:
+    src: config
+    dest: "{{ lookup('env', 'HOME') }}/.config/waybar/config"
+    backup: yes
+
+- name: Deploy waybar style
+  become: false
+  copy:
+    src: style.css
+    dest: "{{ lookup('env', 'HOME') }}/.config/waybar/style.css"
+    backup: yes
