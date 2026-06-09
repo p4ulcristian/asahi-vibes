@@ -20,10 +20,10 @@
       - base-devel
       - hyprpaper
       - thunar
-      - udiskie
       - polkit-gnome
       - ttf-jetbrains-mono-nerd
       - noto-fonts-emoji
+      - otf-font-awesome
     state: latest
     update_cache: true
 
@@ -34,5 +34,7 @@
     - gitkraken
     - anyrun
     - zsh-theme-powerlevel10k-git
+    - networkmanager-dmenu-git
+    - hyprmod
   register: yay_result
   changed_when: "'nothing to do' not in yay_result.stdout"

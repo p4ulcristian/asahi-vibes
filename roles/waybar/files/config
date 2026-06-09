@@ -7,12 +7,12 @@
 
     "hyprland/workspaces": {
         "format": "{id}",
-        "on-click": "activate"
+        "on-click": "/home/paul/.local/bin/hypr-workspace"
     },
 
     "clock": {
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format": " {:%I:%M %p}"
+        "format": "󱑂 {:%a %b %d  %I:%M %p}"
     },
 
     "battery": {
@@ -22,23 +22,24 @@
         },
         "format": "{icon} {capacity}%",
         "format-charging": "󰂄 {capacity}%",
-        "format-plugged": " {capacity}%",
-        "format-icons": ["", "", "", "", ""]
+        "format-plugged": "󰚥 {capacity}%",
+        "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰁹"]
     },
 
     "network": {
-        "format-wifi": " {essid}",
-        "format-ethernet": " {ipaddr}",
+        "format-wifi": "󰖩 {essid}",
+        "format-ethernet": "󰈀 {ipaddr}",
         "format-disconnected": "󰤭 offline",
-        "tooltip-format": "{essid} ({signalStrength}%)"
+        "tooltip-format": "{essid} ({signalStrength}%)",
+        "on-click": "networkmanager_dmenu"
     },
 
     "pulseaudio": {
         "format": "{icon} {volume}%",
         "format-muted": "󰝟 muted",
         "format-icons": {
-            "headphone": "",
-            "default": ["", "", ""]
+            "headphone": "󰋋",
+            "default": ["󰕿", "󰖀", "󰕾"]
         },
         "on-click": "pavucontrol"
     },
