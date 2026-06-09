@@ -31,7 +31,7 @@
   become: false
   shell: yay -S --noconfirm --needed {{ item }}
   loop:
-    - gitkraken
+    - git-cola
     - anyrun
     - zsh-theme-powerlevel10k-git
     - networkmanager-dmenu-git
