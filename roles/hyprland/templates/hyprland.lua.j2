@@ -1,9 +1,7 @@
--- My Hyprland config
-
-local terminal    = "kitty"
-local browser     = "chromium"
-local menu        = "anyrun"
-local mainMod     = "SUPER"
+local terminal = "kitty"
+local browser  = "chromium"
+local menu     = "anyrun"
+local mainMod  = "SUPER"
 
 -- Monitor
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
@@ -18,7 +16,7 @@ end)
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 
--- Look and feel
+-- General
 hl.config({
     general = {
         gaps_in     = 5,
@@ -31,16 +29,15 @@ hl.config({
         layout = "dwindle",
     },
     decoration = {
-        rounding       = 8,
+        rounding         = 8,
         active_opacity   = 1.0,
         inactive_opacity = 1.0,
         shadow = { enabled = true, range = 4, render_power = 3, color = 0xee1a1a1a },
         blur   = { enabled = true, size = 3, passes = 1 },
     },
-    animations = { enabled = true },
-    dwindle    = { preserve_split = true },
-    misc       = { force_default_wallpaper = 0, disable_hyprland_logo = true },
-    input = {
+    dwindle = { preserve_split = true },
+    misc    = { force_default_wallpaper = 0, disable_hyprland_logo = true },
+    input   = {
         kb_layout    = "us",
         follow_mouse = 1,
         sensitivity  = 0,
@@ -48,35 +45,45 @@ hl.config({
     },
 })
 
--- Keybindings: apps
+-- Animations
+hl.config({ animations = { enabled = true } })
+hl.curve("myBezier", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.05} } })
+hl.animation({ leaf = "windows",     enabled = true, speed = 7,  bezier = "myBezier" })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = 7,  bezier = "default",  style = "popin 80%" })
+hl.animation({ leaf = "border",      enabled = true, speed = 10, bezier = "default" })
+hl.animation({ leaf = "borderangle", enabled = true, speed = 8,  bezier = "default" })
+hl.animation({ leaf = "fade",        enabled = true, speed = 7,  bezier = "default" })
+hl.animation({ leaf = "workspaces",  enabled = true, speed = 6,  bezier = "default" })
+
+-- Gestures
+hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
+
+-- Apps
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
 
--- Keybindings: window management
-hl.bind(mainMod .. " + W", hl.dsp.window.close())
+-- Window management
+hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + D", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + L", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
 
--- Keybindings: focus
+-- Focus
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
 
--- Keybindings: workspaces
+-- Workspaces
 for i = 1, 9 do
-    hl.bind(mainMod .. " + " .. i,             hl.dsp.focus({ workspace = i }))
-    hl.bind(mainMod .. " + SHIFT + " .. i,     hl.dsp.window.move({ workspace = i }))
+    hl.bind(mainMod .. " + " .. i,         hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. i, hl.dsp.window.move({ workspace = i }))
 end
 
--- Keybindings: screenshot (area to clipboard)
+-- Screenshot (area to clipboard)
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))
-
--- Gestures
-hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 
 -- Mouse: move/resize
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
@@ -91,7 +98,7 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"
 
 -- Window rules
 hl.window_rule({
-    name  = "suppress-maximize-events",
-    match = { class = ".*" },
+    name           = "suppress-maximize-events",
+    match          = { class = ".*" },
     suppress_event = "maximize",
 })

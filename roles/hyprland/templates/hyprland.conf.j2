@@ -1,68 +1,142 @@
-monitor = ,preferred,auto,1
+$terminal = kitty
+$browser  = chromium
+$menu     = anyrun
 
+# Monitor
+monitor = ,preferred,auto,auto
+
+# Autostart
+exec-once = waybar
+exec-once = 1password --silent
+
+# Environment
+env = XCURSOR_SIZE,24
+env = HYPRCURSOR_SIZE,24
+
+# General
+general {
+    gaps_in      = 5
+    gaps_out     = 10
+    border_size  = 2
+    col.active_border   = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+}
+
+# Decoration
+decoration {
+    rounding         = 8
+    active_opacity   = 1.0
+    inactive_opacity = 1.0
+
+    shadow {
+        enabled      = true
+        range        = 4
+        render_power = 3
+        color        = 0xee1a1a1a
+    }
+
+    blur {
+        enabled = true
+        size    = 3
+        passes  = 1
+    }
+}
+
+# Animations (saneaspect style)
+animations {
+    enabled = true
+
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+
+    animation = windows,     1, 7, myBezier
+    animation = windowsOut,  1, 7, default, popin 80%
+    animation = border,      1, 10, default
+    animation = borderangle, 1, 8, default
+    animation = fade,        1, 7, default
+    animation = workspaces,  1, 6, default
+}
+
+# Input
 input {
-    kb_layout = us
+    kb_layout    = us
     follow_mouse = 1
+    sensitivity  = 0
+
     touchpad {
         natural_scroll = true
     }
 }
 
-general {
-    gaps_in = 5
-    gaps_out = 10
-    border_size = 2
+# Layout
+dwindle {
+    preserve_split = true
 }
 
-decoration {
-    rounding = 8
+# Misc
+misc {
+    force_default_wallpaper = 0
+    disable_hyprland_logo   = true
 }
 
-animations {
-    enabled = true
+# Gestures
+gestures {
+    workspace_swipe         = true
+    workspace_swipe_fingers = 3
 }
 
 # Apps
-$terminal = kitty
-$browser = chromium
-$launcher = rofi -show drun
-
-# Mod key
-$mod = SUPER
-
-# App shortcuts
-bind = $mod, Return, exec, $terminal
-bind = $mod, B, exec, $browser
-bind = $mod, Space, exec, $launcher
+bind = SUPER, Return, exec, $terminal
+bind = SUPER, B,      exec, $browser
+bind = SUPER, Space,  exec, $menu
 
 # Window management
-bind = $mod, W, killactive
-bind = $mod, F, fullscreen
-bind = $mod, V, togglefloating
+bind = SUPER, Q, killactive
+bind = SUPER, F, fullscreen
+bind = SUPER, D, fullscreen
+bind = SUPER, L, togglefloating
+bind = SUPER, J, togglesplit
 
 # Focus
-bind = $mod, left, movefocus, l
-bind = $mod, right, movefocus, r
-bind = $mod, up, movefocus, u
-bind = $mod, down, movefocus, d
+bind = SUPER, left,  movefocus, l
+bind = SUPER, right, movefocus, r
+bind = SUPER, up,    movefocus, u
+bind = SUPER, down,  movefocus, d
 
 # Workspaces
-bind = $mod, 1, workspace, 1
-bind = $mod, 2, workspace, 2
-bind = $mod, 3, workspace, 3
-bind = $mod, 4, workspace, 4
-bind = $mod, 5, workspace, 5
+bind = SUPER, 1, workspace, 1
+bind = SUPER, 2, workspace, 2
+bind = SUPER, 3, workspace, 3
+bind = SUPER, 4, workspace, 4
+bind = SUPER, 5, workspace, 5
+bind = SUPER, 6, workspace, 6
+bind = SUPER, 7, workspace, 7
+bind = SUPER, 8, workspace, 8
+bind = SUPER, 9, workspace, 9
 
-# Move window to workspace
-bind = $mod SHIFT, 1, movetoworkspace, 1
-bind = $mod SHIFT, 2, movetoworkspace, 2
-bind = $mod SHIFT, 3, movetoworkspace, 3
-bind = $mod SHIFT, 4, movetoworkspace, 4
-bind = $mod SHIFT, 5, movetoworkspace, 5
+bind = SUPER SHIFT, 1, movetoworkspace, 1
+bind = SUPER SHIFT, 2, movetoworkspace, 2
+bind = SUPER SHIFT, 3, movetoworkspace, 3
+bind = SUPER SHIFT, 4, movetoworkspace, 4
+bind = SUPER SHIFT, 5, movetoworkspace, 5
+bind = SUPER SHIFT, 6, movetoworkspace, 6
+bind = SUPER SHIFT, 7, movetoworkspace, 7
+bind = SUPER SHIFT, 8, movetoworkspace, 8
+bind = SUPER SHIFT, 9, movetoworkspace, 9
 
-# Screenshot
-bind = $mod SHIFT, S, exec, grim -g "$(slurp)" - | wl-copy
+# Screenshot (area to clipboard)
+bind = SUPER SHIFT, S, exec, grim -g "$(slurp)" - | wl-copy
 
-# Resize with mouse
-bindm = $mod, mouse:272, movewindow
-bindm = $mod, mouse:273, resizewindow
+# Mouse: move/resize windows
+bindm = SUPER, mouse:272, movewindow
+bindm = SUPER, mouse:273, resizewindow
+
+# Media keys
+bindel = , XF86AudioRaiseVolume,  exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+
+bindel = , XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindl  = , XF86AudioMute,         exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindel = , XF86MonBrightnessUp,   exec, brightnessctl -e4 -n2 set 5%+
+bindel = , XF86MonBrightnessDown, exec, brightnessctl -e4 -n2 set 5%-
+
+# Window rules
+windowrulev2 = suppressevent maximize, class:.*
