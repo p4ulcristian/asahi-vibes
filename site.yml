@@ -1,0 +1,14 @@
+---
+- hosts: local
+  gather_facts: false
+  become: true
+  roles:
+    - packages
+    - zsh
+    - gh
+    - wireguard
+    - kitty
+    - hyprland
+    - 1password
+    - anyrun
+    - keyd

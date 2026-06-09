@@ -1,0 +1,12 @@
+---
+- name: Create anyrun config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/anyrun"
+    state: directory
+
+- name: Deploy anyrun config
+  become: false
+  copy:
+    src: config.ron
+    dest: "{{ lookup('env', 'HOME') }}/.config/anyrun/config.ron"

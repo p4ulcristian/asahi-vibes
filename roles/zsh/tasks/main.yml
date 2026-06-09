@@ -1,0 +1,25 @@
+---
+- name: Check if oh-my-zsh is already installed
+  become: false
+  stat:
+    path: "{{ lookup('env', 'HOME') }}/.oh-my-zsh"
+  register: omz
+
+- name: Install oh-my-zsh
+  become: false
+  shell: >
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    --unattended
+  when: not omz.stat.exists
+
+- name: Deploy .zshrc
+  become: false
+  template:
+    src: zshrc.j2
+    dest: "{{ lookup('env', 'HOME') }}/.zshrc"
+    backup: yes
+
+- name: Set zsh as default shell
+  user:
+    name: "{{ lookup('env', 'USER') }}"
+    shell: /bin/zsh

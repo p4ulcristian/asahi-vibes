@@ -1,0 +1,13 @@
+---
+- name: Create hyprland config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/hypr"
+    state: directory
+
+- name: Deploy hyprland lua config
+  become: false
+  template:
+    src: hyprland.lua.j2
+    dest: "{{ lookup('env', 'HOME') }}/.config/hypr/hyprland.lua"
+    backup: yes

@@ -1,0 +1,31 @@
+---
+- name: Install base packages
+  become: true
+  community.general.pacman:
+    name:
+      - zsh
+      - git
+      - github-cli
+      - wireguard-tools
+      - curl
+      - wget
+      - htop
+      - neovim
+      - chromium
+      - powerline-fonts
+      - waybar
+      - rofi
+      - grim
+      - slurp
+      - base-devel
+    state: latest
+    update_cache: true
+
+- name: Install AUR packages
+  become: false
+  shell: yay -S --noconfirm --needed {{ item }}
+  loop:
+    - gitkraken
+    - anyrun
+  register: yay_result
+  changed_when: "'nothing to do' not in yay_result.stdout"

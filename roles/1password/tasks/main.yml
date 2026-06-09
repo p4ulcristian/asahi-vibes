@@ -1,0 +1,41 @@
+---
+- name: Check if 1Password is installed
+  stat:
+    path: /opt/1Password/1password
+  register: op_installed
+
+- name: Download 1Password aarch64 tarball
+  become: false
+  get_url:
+    url: https://downloads.1password.com/linux/tar/stable/aarch64/1password-latest.tar.gz
+    dest: /tmp/1password-latest.tar.gz
+  when: not op_installed.stat.exists
+
+- name: Extract 1Password
+  become: true
+  unarchive:
+    src: /tmp/1password-latest.tar.gz
+    dest: /tmp/
+    remote_src: yes
+    list_files: yes
+  register: archive_contents
+  when: not op_installed.stat.exists
+
+- name: Move 1Password to /opt
+  become: true
+  shell: |
+    dir=$(tar -tzf /tmp/1password-latest.tar.gz | head -1 | cut -d/ -f1)
+    mv /tmp/$dir /opt/1Password
+  when: not op_installed.stat.exists
+
+- name: Run 1Password after-install script
+  become: true
+  shell: /opt/1Password/after-install.sh
+  when: not op_installed.stat.exists
+
+- name: Cleanup tarball
+  become: false
+  file:
+    path: /tmp/1password-latest.tar.gz
+    state: absent
+  when: not op_installed.stat.exists

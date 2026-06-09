@@ -1,0 +1,20 @@
+---
+- name: Check if Toshy is already installed
+  stat:
+    path: "{{ lookup('env', 'HOME') }}/.config/toshy"
+  register: toshy_installed
+
+- name: Clone Toshy repo
+  become: false
+  git:
+    repo: https://github.com/RedBearAK/toshy.git
+    dest: /tmp/toshy
+    depth: 1
+  when: not toshy_installed.stat.exists
+
+- name: Run Toshy installer
+  become: false
+  shell: yes | ./setup_toshy.py install
+  args:
+    chdir: /tmp/toshy
+  when: not toshy_installed.stat.exists

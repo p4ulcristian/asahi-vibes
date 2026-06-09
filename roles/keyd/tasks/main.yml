@@ -1,0 +1,20 @@
+---
+- name: Install keyd
+  become: true
+  community.general.pacman:
+    name: keyd
+    state: present
+
+- name: Deploy keyd config
+  become: true
+  copy:
+    src: default.conf
+    dest: /etc/keyd/default.conf
+  notify: restart keyd
+
+- name: Enable and start keyd
+  become: true
+  systemd:
+    name: keyd
+    enabled: true
+    state: started
