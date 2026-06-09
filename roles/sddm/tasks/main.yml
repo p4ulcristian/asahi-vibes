@@ -1,0 +1,21 @@
+---
+- name: Install Pixie SDDM theme (AUR)
+  become: false
+  shell: yay -S --noconfirm --needed pixie-sddm-git
+  register: yay_result
+  changed_when: "'nothing to do' not in yay_result.stdout"
+
+- name: Configure SDDM to use the Pixie theme
+  become: true
+  template:
+    src: sddm.conf.j2
+    dest: /etc/sddm.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable SDDM service
+  become: true
+  systemd:
+    name: sddm
+    enabled: true
