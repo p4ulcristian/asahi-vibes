@@ -17,6 +17,7 @@
       - rofi
       - grim
       - slurp
+      - wdisplays
       - base-devel
       - hyprpaper
       - thunar
@@ -35,7 +36,6 @@
     - anyrun
     - zsh-theme-powerlevel10k-git
     - networkmanager-dmenu-git
-    - hyprmod
     - vesktop
   register: yay_result
   changed_when: "'nothing to do' not in yay_result.stdout"
