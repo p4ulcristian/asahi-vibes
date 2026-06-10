@@ -7,6 +7,9 @@ local mainMod     = "SUPER"
 
 -- Monitor
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
+-- Always mirror the SmartGlasses (DP-1) onto the laptop panel (eDP-1).
+-- The catch-all rule above keeps eDP-1 working on its own when the glasses are unplugged.
+hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.0, mirror = "DP-1" })
 
 -- Autostart
 hl.on("hyprland.start", function()
