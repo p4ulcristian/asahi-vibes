@@ -28,6 +28,7 @@
       - telegram-desktop
       - bluez
       - bluez-utils
+      - brightnessctl
       - calf
       - pipewire-zeroconf
       - avahi
