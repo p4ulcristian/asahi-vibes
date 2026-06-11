@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# AirPods helper for Waybar.
+#   bt-airpods status  -> JSON for the bar (icon + class + tooltip)
+#   bt-airpods toggle  -> connect if disconnected, disconnect if connected
+#   bt-airpods pair    -> one-time pairing (AirPods must be in pairing mode)
+#
+# Detects AirPods automatically by matching "airpod" in the device name,
+# so it keeps working no matter the MAC.
+
+set -u
+
+note() { command -v notify-send >/dev/null && notify-send "AirPods" "$1"; }
+
+get_mac() {
+    # Match AirPods but skip the "Find My" beacon (broadcast while idle in the
+    # case — it is NOT pairable). Prefer an already-paired entry.
+    bluetoothctl devices Paired 2>/dev/null | grep -i 'airpod' | grep -vi 'find my' | head -1 | awk '{print $2}'
+}
+
+get_pairable_mac() {
+    # Any AirPods advert that is not the Find My beacon (used during pairing).
+    bluetoothctl devices 2>/dev/null | grep -i 'airpod' | grep -vi 'find my' | head -1 | awk '{print $2}'
+}
+
+is_connected() {
+    bluetoothctl info "$1" 2>/dev/null | grep -q "Connected: yes"
+}
+
+refresh_bar() { pkill -RTMIN+8 waybar 2>/dev/null; }
+
+MAC="$(get_mac)"
+
+case "${1:-status}" in
+status)
+    if [ -z "$MAC" ]; then
+        printf '{"text":"󰂲","class":"unpaired","tooltip":"AirPods not paired — click to pair"}\n'
+    elif is_connected "$MAC"; then
+        printf '{"text":"󱉢","class":"connected","tooltip":"AirPods connected — click to disconnect"}\n'
+    else
+        printf '{"text":"󱉣","class":"disconnected","tooltip":"AirPods — click to connect"}\n'
+    fi
+    ;;
+
+toggle)
+    if [ -z "$MAC" ]; then
+        exec "$0" pair
+    elif is_connected "$MAC"; then
+        bluetoothctl disconnect "$MAC" >/dev/null && note "Disconnected"
+    else
+        note "Connecting…"
+        if bluetoothctl connect "$MAC" >/dev/null; then
+            note "Connected"
+        else
+            note "Connect failed — open the case lid / wake them and try again"
+        fi
+    fi
+    refresh_bar
+    ;;
+
+pair)
+    note "Pairing: hold the case button (or double-tap the front) until the light blinks WHITE. Scanning 20s…"
+    bluetoothctl --timeout 20 scan on >/dev/null 2>&1
+    bluetoothctl scan off >/dev/null 2>&1
+    MAC="$(get_pairable_mac)"
+    if [ -z "$MAC" ]; then
+        note "No pairable AirPods found — only the idle 'Find My' beacon. Make sure they blink WHITE (and Bluetooth is off on your iPhone), then click again."
+        refresh_bar
+        exit 1
+    fi
+    if bluetoothctl pair "$MAC" >/dev/null 2>&1; then
+        bluetoothctl trust "$MAC" >/dev/null 2>&1
+        if bluetoothctl connect "$MAC" >/dev/null 2>&1; then
+            note "Paired and connected!"
+        else
+            note "Paired. Click the button again to connect."
+        fi
+    else
+        note "Pairing failed. Keep them blinking white and not connected to any other device, then retry."
+    fi
+    refresh_bar
+    ;;
+
+*)
+    echo "usage: bt-airpods {status|toggle|pair}" >&2
+    exit 2
+    ;;
+esac

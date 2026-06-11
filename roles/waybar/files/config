@@ -3,7 +3,7 @@
     "spacing": 8,
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["pulseaudio", "network", "battery", "tray"],
+    "modules-right": ["custom/airpods", "pulseaudio", "network", "battery", "tray"],
 
     "hyprland/workspaces": {
         "format": "{id}",
@@ -32,6 +32,14 @@
         "format-disconnected": "󰤭 offline",
         "tooltip-format": "{essid} ({signalStrength}%)",
         "on-click": "networkmanager_dmenu"
+    },
+
+    "custom/airpods": {
+        "exec": "/home/paul/.local/bin/bt-airpods status",
+        "return-type": "json",
+        "interval": 10,
+        "signal": 8,
+        "on-click": "/home/paul/.local/bin/bt-airpods toggle"
     },
 
     "pulseaudio": {

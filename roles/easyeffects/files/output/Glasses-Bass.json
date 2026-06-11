@@ -1,0 +1,80 @@
+{
+    "output": {
+        "blocklist": [],
+        "plugins_order": [
+            "bass_enhancer#0",
+            "equalizer#0"
+        ],
+        "bass_enhancer#0": {
+            "amount": 10.0,
+            "blend": 0.0,
+            "bypass": false,
+            "drive": 0.7,
+            "floor": 20.0,
+            "floor-active": false,
+            "input-gain": 0.0,
+            "listen": false,
+            "output-gain": 0.0,
+            "scope": 120.0
+        },
+        "equalizer#0": {
+            "balance": 0.0,
+            "bypass": false,
+            "input-gain": 0.0,
+            "mode": "IIR",
+            "num-bands": 2,
+            "output-gain": 0.0,
+            "pitch-left": 0.0,
+            "pitch-right": 0.0,
+            "split-channels": false,
+            "left": {
+                "band0": {
+                    "frequency": 110.0,
+                    "gain": 6.0,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 0.7,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Lo-shelf",
+                    "width": 4.0
+                },
+                "band1": {
+                    "frequency": 60.0,
+                    "gain": 4.0,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 1.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell",
+                    "width": 4.0
+                }
+            },
+            "right": {
+                "band0": {
+                    "frequency": 110.0,
+                    "gain": 6.0,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 0.7,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Lo-shelf",
+                    "width": 4.0
+                },
+                "band1": {
+                    "frequency": 60.0,
+                    "gain": 4.0,
+                    "mode": "RLC (BT)",
+                    "mute": false,
+                    "q": 1.0,
+                    "slope": "x1",
+                    "solo": false,
+                    "type": "Bell",
+                    "width": 4.0
+                }
+            }
+        }
+    }
+}

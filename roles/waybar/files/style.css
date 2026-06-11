@@ -37,11 +37,26 @@ window#waybar {
 #battery,
 #network,
 #pulseaudio,
+#custom-airpods,
 #tray {
     padding: 0 12px;
     margin: 4px 2px;
     border-radius: 4px;
     color: #2d353b;
+}
+
+#custom-airpods {
+    background-color: #83c092;
+}
+
+#custom-airpods.disconnected {
+    background-color: #4a555b;
+    color: #d3c6aa;
+}
+
+#custom-airpods.unpaired {
+    background-color: #4a555b;
+    color: #859289;
 }
 
 #clock {

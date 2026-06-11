@@ -17,6 +17,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")
     hl.exec_cmd("1password --silent")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+    hl.exec_cmd("easyeffects --gapplication-service")
 end)
 
 -- Environment
@@ -65,6 +66,7 @@ hl.animation({ leaf = "workspaces",  enabled = true, speed = 6,  bezier = "defau
 -- Keybindings: apps
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
 
 -- Keybindings: window management
@@ -87,7 +89,7 @@ for i = 1, 9 do
 end
 
 -- Keybindings: screenshot (area to clipboard)
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | tee ~/pictures/screenshot_$(date +%Y%m%d_%H%M%S).png | wl-copy && notify-send "Screenshot" "Saved and copied to clipboard"'))
 
 -- Gestures
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })

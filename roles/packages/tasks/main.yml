@@ -25,8 +25,19 @@
       - ttf-jetbrains-mono-nerd
       - noto-fonts-emoji
       - otf-font-awesome
+      - telegram-desktop
+      - bluez
+      - bluez-utils
+      - easyeffects
     state: latest
     update_cache: true
+
+- name: Enable and start bluetooth service
+  become: true
+  systemd:
+    name: bluetooth.service
+    enabled: true
+    state: started
 
 - name: Install AUR packages
   become: false

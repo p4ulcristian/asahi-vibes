@@ -18,3 +18,16 @@
     src: style.css
     dest: "{{ lookup('env', 'HOME') }}/.config/waybar/style.css"
     backup: yes
+
+- name: Create local bin dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.local/bin"
+    state: directory
+
+- name: Deploy bt-airpods helper script
+  become: false
+  copy:
+    src: bt-airpods
+    dest: "{{ lookup('env', 'HOME') }}/.local/bin/bt-airpods"
+    mode: "0755"
