@@ -1,0 +1,39 @@
+---
+# User-level PipeWire / WirePlumber config for the RayNeo glasses + AirPlay.
+#  - 51-rayneo-glasses.conf : rename the glasses DP sink to "RayNeo Glasses"
+#    and force S16 (the Asahi dcp-dp-audio 24-bit path won't start the PCM).
+#  - 99-rayneo-bass.conf     : output-only Calf Bass Enhancer filter-chain on
+#    the glasses (mic-safe; replaces EasyEffects, which hijacked the mic).
+#  - 50-raop.conf            : enable the RAOP module so HomePods/AirPlay
+#    speakers show up as outputs (needs pipewire-zeroconf + avahi, installed
+#    by the packages role).
+
+- name: Create wireplumber user config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/wireplumber/wireplumber.conf.d"
+    state: directory
+
+- name: Create pipewire user config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/pipewire/pipewire.conf.d"
+    state: directory
+
+- name: Deploy WirePlumber glasses config (rename + S16)
+  become: false
+  copy:
+    src: "wireplumber/51-rayneo-glasses.conf"
+    dest: "{{ lookup('env', 'HOME') }}/.config/wireplumber/wireplumber.conf.d/51-rayneo-glasses.conf"
+
+- name: Deploy glasses bass filter-chain
+  become: false
+  copy:
+    src: "pipewire/99-rayneo-bass.conf"
+    dest: "{{ lookup('env', 'HOME') }}/.config/pipewire/pipewire.conf.d/99-rayneo-bass.conf"
+
+- name: Enable RAOP (AirPlay/HomePod) module
+  become: false
+  copy:
+    src: "pipewire/50-raop.conf"
+    dest: "{{ lookup('env', 'HOME') }}/.config/pipewire/pipewire.conf.d/50-raop.conf"

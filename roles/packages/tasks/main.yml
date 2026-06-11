@@ -28,7 +28,10 @@
       - telegram-desktop
       - bluez
       - bluez-utils
-      - easyeffects
+      - calf
+      - pipewire-zeroconf
+      - avahi
+      - nss-mdns
     state: latest
     update_cache: true
 
@@ -36,6 +39,13 @@
   become: true
   systemd:
     name: bluetooth.service
+    enabled: true
+    state: started
+
+- name: Enable and start avahi (mDNS for AirPlay/HomePod discovery)
+  become: true
+  systemd:
+    name: avahi-daemon.service
     enabled: true
     state: started
 
