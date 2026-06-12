@@ -14,7 +14,7 @@
 - name: Download Everforest wallpaper
   become: false
   get_url:
-    url: "https://raw.githubusercontent.com/Apeiros-46B/everforest-walls/main/png/full/leaves_1.png"
+    url: "https://raw.githubusercontent.com/Apeiros-46B/everforest-walls/main/nature/green_forest_1.png"
     dest: "{{ lookup('env', 'HOME') }}/pictures/wallpapers/everforest.png"
     mode: '0644'
 
@@ -24,3 +24,10 @@
     src: hyprpaper.conf.j2
     dest: "{{ lookup('env', 'HOME') }}/.config/hypr/hyprpaper.conf"
     backup: yes
+
+- name: Deploy hyprpaper start wrapper
+  become: false
+  template:
+    src: start-hyprpaper.sh.j2
+    dest: "{{ lookup('env', 'HOME') }}/.config/hypr/start-hyprpaper.sh"
+    mode: '0755'

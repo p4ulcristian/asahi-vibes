@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# hyprpaper v0.8.4 on this machine does not reliably apply the wallpaper from
+# hyprpaper.conf ("Monitor eDP-1 has no target"). Launch the daemon, wait for its
+# IPC socket, then set the wallpaper over IPC — which works reliably.
+set -euo pipefail
+WP="{{ lookup('env', 'HOME') }}/pictures/wallpapers/everforest.png"
+MON="eDP-1"
+
+hyprpaper &
+
+# Wait for hyprpaper's IPC to come up (listactive succeeds once the socket is ready).
+for _ in $(seq 1 40); do
+    if hyprctl hyprpaper listactive >/dev/null 2>&1; then
+        break
+    fi
+    sleep 0.25
+done
+
+hyprctl hyprpaper preload "$WP" >/dev/null 2>&1 || true
+hyprctl hyprpaper wallpaper "${MON},${WP}" >/dev/null 2>&1 || true
