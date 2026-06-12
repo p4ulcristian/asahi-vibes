@@ -2,11 +2,17 @@
 # User-level PipeWire / WirePlumber config for the RayNeo glasses + AirPlay.
 #  - 51-rayneo-glasses.conf : rename the glasses DP sink to "RayNeo Glasses"
 #    and force S16 (the Asahi dcp-dp-audio 24-bit path won't start the PCM).
-#  - 99-rayneo-bass.conf     : output-only Calf Bass Enhancer filter-chain on
-#    the glasses (mic-safe; replaces EasyEffects, which hijacked the mic).
+#  - 98-rayneo-eq.conf       : builtin-biquad EQ sink (low-shelf 110Hz +2.5dB,
+#    body bell 200Hz +3.5dB) tuned for the tiny open-ear drivers; feeds the
+#    bass chain. Set rayneo_eq as the default sink to use it.
+#  - 99-rayneo-bass.conf     : output-only Calf Bass Enhancer + Limiter
+#    filter-chain on the glasses (mic-safe; replaces EasyEffects, which
+#    hijacked the mic). Limiter is a LOUDNESS stage; attack must stay >=10ms
+#    or it gates low-bass cycles ("cutting out on loud bass").
 #  - 50-raop.conf            : enable the RAOP module so HomePods/AirPlay
 #    speakers show up as outputs (needs pipewire-zeroconf + avahi, installed
 #    by the packages role).
+# Chain: apps -> rayneo_eq -> rayneo_bass -> Apple DP sink.
 
 - name: Create wireplumber user config dir
   become: false
@@ -25,6 +31,12 @@
   copy:
     src: "wireplumber/51-rayneo-glasses.conf"
     dest: "{{ lookup('env', 'HOME') }}/.config/wireplumber/wireplumber.conf.d/51-rayneo-glasses.conf"
+
+- name: Deploy glasses EQ filter-chain
+  become: false
+  copy:
+    src: "pipewire/98-rayneo-eq.conf"
+    dest: "{{ lookup('env', 'HOME') }}/.config/pipewire/pipewire.conf.d/98-rayneo-eq.conf"
 
 - name: Deploy glasses bass filter-chain
   become: false
