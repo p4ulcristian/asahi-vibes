@@ -11,3 +11,16 @@
     src: kitty.conf.j2
     dest: "{{ lookup('env', 'HOME') }}/.config/kitty/kitty.conf"
     backup: yes
+
+- name: Deploy random-theme picker
+  become: false
+  copy:
+    src: random-theme.sh
+    dest: "{{ lookup('env', 'HOME') }}/.config/kitty/random-theme.sh"
+    mode: '0755'
+
+- name: Install dark themes for random rotation
+  become: false
+  script: install-dark-themes.sh
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.config/kitty/themes"
