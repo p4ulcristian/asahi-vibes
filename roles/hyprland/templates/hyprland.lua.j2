@@ -3,6 +3,7 @@
 local terminal    = "kitty"
 local browser     = "chromium"
 local menu        = "anyrun"
+local claudia     = "chromium --app=https://claudia.irisdoes.work/"
 local mainMod     = "SUPER"
 
 -- Monitor
@@ -67,6 +68,7 @@ hl.animation({ leaf = "workspaces",  enabled = true, speed = 6,  bezier = "defau
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
+hl.bind(mainMod .. " + K",      hl.dsp.exec_cmd(claudia))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
 
 -- Keybindings: window management
