@@ -15,7 +15,7 @@ hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.0
 -- Autostart
 hl.on("hyprland.start", function()
     hl.exec_cmd("{{ lookup('env', 'HOME') }}/.config/hypr/start-hyprpaper.sh")
-    hl.exec_cmd("waybar")
+    -- waybar is managed by systemd (waybar.service, auto-restarts on crash)
     hl.exec_cmd("1password --silent")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("brightnessctl --device=kbd_backlight set 40%")
@@ -50,7 +50,7 @@ hl.config({
         kb_layout    = "us",
         follow_mouse = 1,
         sensitivity  = 0,
-        touchpad     = { natural_scroll = true, tap_to_click = true, clickfinger_behavior = true },
+        touchpad     = { natural_scroll = true, tap_to_click = true, clickfinger_behavior = true, disable_while_typing = true },
     },
 })
 
