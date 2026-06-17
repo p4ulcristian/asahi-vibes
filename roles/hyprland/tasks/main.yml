@@ -11,3 +11,15 @@
     src: hyprland.lua.j2
     dest: "{{ lookup('env', 'HOME') }}/.config/hypr/hyprland.lua"
     backup: yes
+
+- name: Deploy hypridle config (catches the power-button lock signal)
+  become: false
+  copy:
+    src: hypridle.conf
+    dest: "{{ lookup('env', 'HOME') }}/.config/hypr/hypridle.conf"
+
+- name: Deploy hyprlock config (the lock screen)
+  become: false
+  copy:
+    src: hyprlock.conf
+    dest: "{{ lookup('env', 'HOME') }}/.config/hypr/hyprlock.conf"

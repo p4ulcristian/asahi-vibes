@@ -12,6 +12,7 @@
     - 1password
     - anyrun
     - keyd
+    - logind
     - waybar
     - hyprpaper
     - sddm

@@ -20,6 +20,8 @@
       - wdisplays
       - base-devel
       - hyprpaper
+      - hyprlock
+      - hypridle
       - thunar
       - polkit-gnome
       - ttf-jetbrains-mono-nerd

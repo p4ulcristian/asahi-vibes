@@ -1,0 +1,14 @@
+---
+- name: Ensure logind drop-in directory exists
+  become: true
+  file:
+    path: /etc/systemd/logind.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Deploy logind lid-switch drop-in
+  become: true
+  copy:
+    src: lid.conf
+    dest: /etc/systemd/logind.conf.d/lid.conf
+  notify: restart systemd-logind

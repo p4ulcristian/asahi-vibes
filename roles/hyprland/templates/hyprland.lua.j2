@@ -19,6 +19,8 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("1password --silent")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("brightnessctl --device=kbd_backlight set 40%")
+    -- Listen for the logind lock signal (power button) and launch hyprlock.
+    hl.exec_cmd("hypridle")
 end)
 
 -- Environment
