@@ -73,6 +73,9 @@ hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + K",      hl.dsp.exec_cmd(claudia))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
 
+-- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
+
 -- Keybindings: window management
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
