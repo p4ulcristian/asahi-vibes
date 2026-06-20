@@ -23,15 +23,13 @@ printf '%s' "$me" > "$tok"
 sleep 0.3
 [ "$(cat "$tok" 2>/dev/null)" = "$me" ] || exit 0
 
-# Close a menu still open from an earlier selection (exact name, not this script).
-pkill -x anyrun 2>/dev/null || true
+# Close a popup still open from an earlier selection.
+pkill -x zenity 2>/dev/null || true
 
-# anyrun opens centered on the focused monitor (the one you selected on). Its
-# --x/--y CLI panics in this build, so we don't try to pin to the exact cursor.
-choice="$(printf '%s\n' '🔊 Read aloud' '⏹ Stop speaking' \
-    | anyrun --plugins libstdin.so 2>/dev/null || true)"
-
-case "$choice" in
-    *"Read aloud"*)    printf '%s' "$text" | iris-say ;;
-    *"Stop speaking"*) iris-say --stop ;;
-esac
+# A tiny dialog with ONE button: "Read aloud". Click it -> speak. Close it
+# (X / Esc) -> do nothing. Short preview of the selection in the body.
+preview="${text:0:90}"; [ "${#text}" -gt 90 ] && preview="${preview}…"
+if zenity --info --no-wrap --title="iris" \
+        --ok-label="🔊 Read aloud" --text="$preview" 2>/dev/null; then
+    printf '%s' "$text" | iris-say
+fi
