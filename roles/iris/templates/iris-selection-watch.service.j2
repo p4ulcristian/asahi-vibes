@@ -1,0 +1,15 @@
+[Unit]
+Description=iris-selection-watch — pop the read-aloud menu when text is selected
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+# wl-paste --watch runs the handler each time the PRIMARY selection changes,
+# feeding the selected text on the handler's stdin.
+ExecStart=/usr/bin/wl-paste --primary --watch {{ lookup('env', 'HOME') }}/.local/bin/iris-selection-menu
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

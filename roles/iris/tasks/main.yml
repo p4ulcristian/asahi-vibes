@@ -29,6 +29,7 @@
     - iris-say
     - iris-read-selection
     - iris-actions
+    - iris-selection-menu
 
 - name: Ensure iris-ptt config dir exists (holds the API key)
   become: false
@@ -64,3 +65,25 @@
     name: iris-ptt.service
     enabled: true
     state: "{{ 'restarted' if iris_ptt_unit.changed else 'started' }}"
+
+- name: Deploy iris-selection-watch systemd user service
+  become: false
+  template:
+    src: iris-selection-watch.service.j2
+    dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/iris-selection-watch.service"
+  register: iris_sel_unit
+
+- name: Reload systemd user daemon if the selection-watch unit changed
+  become: false
+  systemd:
+    scope: user
+    daemon_reload: true
+  when: iris_sel_unit.changed
+
+- name: Enable and (re)start iris-selection-watch user service
+  become: false
+  systemd:
+    scope: user
+    name: iris-selection-watch.service
+    enabled: true
+    state: "{{ 'restarted' if iris_sel_unit.changed else 'started' }}"
