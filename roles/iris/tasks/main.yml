@@ -4,11 +4,10 @@
 #   STT (input):  hold CapsLock (keyd maps capslock->f13) -> iris-ptt-daemon
 #                 records the mic, POSTs /stt/transcribe, pastes the text.
 #   TTS (output): iris-say sends text to /tts/stream and plays the reply;
-#                 iris-read-selection speaks the highlighted text; iris-actions
-#                 is the anyrun popup menu of text actions.
+#                 iris-read-selection (bound to Super+R) speaks the selection.
 #
 # Requires (installed by the `packages` role): python-evdev, wl-clipboard,
-# wtype, curl, libnotify, pipewire (pw-record/pw-cat), keyd, anyrun.
+# wtype, curl, libnotify, pipewire (pw-record/pw-cat), keyd.
 # The CapsLock->F13 remap lives in the `keyd` role. The API key must be placed
 # by hand at ~/.config/iris-ptt/api_key (mode 600) — not managed here.
 
@@ -28,7 +27,6 @@
     - iris-ptt-daemon.py
     - iris-say
     - iris-read-selection
-    - iris-actions
 
 - name: Ensure iris-ptt config dir exists (holds the API key)
   become: false

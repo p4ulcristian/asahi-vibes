@@ -79,11 +79,9 @@ hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- Keybindings: text-to-speech (iris-say -> iris-comms /tts/stream)
--- CapsLock push-to-talk handles STT input; these handle TTS output.
-local irisRead    = "{{ lookup('env', 'HOME') }}/.local/bin/iris-read-selection"
-local irisActions = "{{ lookup('env', 'HOME') }}/.local/bin/iris-actions"
-hl.bind(mainMod .. " + R",         hl.dsp.exec_cmd(irisRead))     -- speak highlighted text
-hl.bind(mainMod .. " + ALT + R",   hl.dsp.exec_cmd(irisActions))  -- popup action menu on selection
+-- CapsLock push-to-talk handles STT input; this reads the selection aloud.
+local irisRead = "{{ lookup('env', 'HOME') }}/.local/bin/iris-read-selection"
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(irisRead))   -- speak highlighted text
 
 -- Keybindings: window management
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
