@@ -6,6 +6,7 @@
 # listing actions that operate on the current selection. Add new lines here to
 # grow the menu (translate, summarize, …).
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"   # ensure iris-* resolve under Hyprland
 
 choice="$(printf '%s\n' \
     '🔊 Read aloud' \

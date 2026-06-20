@@ -2,7 +2,9 @@
 """
 iris-ptt — push-to-talk speech-to-text.
 
-Hold CapsLock (remapped to F13 by keyd) to record from the default mic.
+Hold CapsLock (remapped to F13 by keyd) to record from the Mac's built-in
+microphone (pinned via SOURCE below, NOT the system default — so plugging in
+headsets/BT devices or default-source drift never affects dictation).
 On release the clip is POSTed to the iris-comms STT endpoint and the
 transcribed text is delivered to the focused window — by clipboard paste
 (default, instant) or simulated typing.
@@ -27,6 +29,10 @@ API_KEY_FILE = os.path.expanduser("~/.config/iris-ptt/api_key")
 TRIGGER_KEY = ecodes.KEY_F13          # keyd maps capslock -> f13
 KBD_NAME = "keyd virtual keyboard"    # device that emits the remapped key
 LANGUAGE = os.environ.get("IRIS_PTT_LANG", "")  # "" = let the server auto-detect
+# Always capture from the Mac's built-in mic (asahi DSP-processed source), never
+# the system default — so headsets/BT/AirPlay changes can't hijack dictation.
+# Override with IRIS_PTT_SOURCE; set it empty ("") to fall back to the default.
+SOURCE = os.environ.get("IRIS_PTT_SOURCE", "effect_output.j413-mic")
 OUTPUT_MODE = os.environ.get("IRIS_PTT_OUTPUT", "paste")  # "paste" or "type"
 MIN_HOLD_S = 0.25                     # ignore accidental taps
 RECORD_PATH = os.path.join(tempfile.gettempdir(), "iris-ptt.wav")
@@ -71,10 +77,12 @@ def find_keyboard():
 
 
 def start_recording():
+    cmd = ["pw-record", "--rate", "16000", "--channels", "1", "--format", "s16"]
+    if SOURCE:                               # pin to the Mac mic, not the default
+        cmd += ["--target", SOURCE]
+    cmd.append(RECORD_PATH)
     return subprocess.Popen(
-        ["pw-record", "--rate", "16000", "--channels", "1", "--format", "s16",
-         RECORD_PATH],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
 
 

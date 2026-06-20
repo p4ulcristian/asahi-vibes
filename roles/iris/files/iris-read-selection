@@ -5,6 +5,7 @@
 # copy needed); falls back to the regular clipboard if nothing is selected.
 # This is the zero-friction "read this to me" hotkey target.
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"   # ensure iris-say resolves under Hyprland
 
 text="$(wl-paste --primary --no-newline 2>/dev/null || true)"
 if [ -z "${text//[[:space:]]/}" ]; then

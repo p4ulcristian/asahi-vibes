@@ -33,6 +33,10 @@ API_KEY_FILE = os.path.expanduser("~/.config/iris-ptt/api_key")
 DEFAULT_RATE = 24000                       # orpheus output rate
 PIDFILE = os.path.join(tempfile.gettempdir(), "iris-say.pid")
 MAX_CHARS = 5000                           # server rejects longer; trim early
+# Always play out the Mac's built-in speakers (asahi DSP convolver sink), never
+# the system default — so a HomePod/AirPlay/BT default sink can't hijack speech.
+# Override with IRIS_TTS_SINK; set it empty ("") to use the default sink.
+SINK = os.environ.get("IRIS_TTS_SINK", "audio_effect.j413-convolver")
 
 
 def notify(msg, urgency="low"):
@@ -122,11 +126,12 @@ def main():
     def player_stdin(rate):
         nonlocal player
         if player is None:
-            player = subprocess.Popen(
-                ["pw-cat", "--playback", "--raw", "--format", "s16",
-                 "--rate", str(rate), "--channels", "1", "-"],
-                stdin=subprocess.PIPE,
-            )
+            cmd = ["pw-cat", "--playback", "--raw", "--format", "s16",
+                   "--rate", str(rate), "--channels", "1"]
+            if SINK:                         # pin to the Mac speakers, not default
+                cmd += ["--target", SINK]
+            cmd.append("-")
+            player = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         return player.stdin
 
     try:
