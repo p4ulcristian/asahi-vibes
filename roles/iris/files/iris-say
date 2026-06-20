@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+"""
+iris-say — text-to-speech via the iris-comms server.
+
+Reads text (from CLI args or stdin), POSTs it to the iris-comms TTS endpoint
+and plays the streamed audio on the default sink. The server replies with a
+Server-Sent Events stream — one `event: chunk` per audio fragment carrying a
+base64-encoded WAV — so playback starts as the first chunk arrives instead of
+waiting for the whole clip.
+
+Usage:
+    iris-say "hello world"
+    echo "hello world" | iris-say
+    iris-say --stop          # interrupt whatever is currently speaking
+
+A single playback is allowed at a time: starting a new one (or --stop) kills
+the previous one via a pidfile. The process puts itself in its own process
+group so killing it takes the curl + pw-cat children with it.
+"""
+import base64
+import io
+import json
+import os
+import signal
+import subprocess
+import sys
+import tempfile
+import wave
+
+# --- config -----------------------------------------------------------------
+ENDPOINT = os.environ.get("IRIS_TTS_ENDPOINT", "http://10.99.0.2:4260/tts/stream")
+API_KEY_FILE = os.path.expanduser("~/.config/iris-ptt/api_key")
+DEFAULT_RATE = 24000                       # orpheus output rate
+PIDFILE = os.path.join(tempfile.gettempdir(), "iris-say.pid")
+MAX_CHARS = 5000                           # server rejects longer; trim early
+
+
+def notify(msg, urgency="low"):
+    try:
+        subprocess.run(["notify-send", "-u", urgency, "-t", "2000",
+                        "🔊 iris-say", msg], check=False)
+    except FileNotFoundError:
+        pass
+
+
+def load_api_key():
+    with open(API_KEY_FILE) as f:
+        return f.read().strip()
+
+
+def kill_previous():
+    """Stop any currently-playing iris-say (best effort)."""
+    try:
+        with open(PIDFILE) as f:
+            pgid = int(f.read().strip())
+    except (FileNotFoundError, ValueError):
+        return
+    try:
+        os.killpg(pgid, signal.SIGTERM)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def read_text():
+    args = [a for a in sys.argv[1:] if a != "--"]
+    if args:
+        return " ".join(args).strip()
+    if not sys.stdin.isatty():
+        return sys.stdin.read().strip()
+    return ""
+
+
+def pcm_from_chunk_wav(b64):
+    """A chunk's audio_b64 is a self-contained WAV; return (pcm_bytes, rate)."""
+    raw = base64.b64decode(b64)
+    with wave.open(io.BytesIO(raw), "rb") as w:
+        return w.readframes(w.getnframes()), w.getframerate()
+
+
+def main():
+    # --stop: interrupt current playback and exit.
+    if "--stop" in sys.argv[1:]:
+        kill_previous()
+        try:
+            os.unlink(PIDFILE)
+        except FileNotFoundError:
+            pass
+        return
+
+    text = read_text()
+    if not text:
+        return
+    if len(text) > MAX_CHARS:
+        text = text[:MAX_CHARS]
+
+    try:
+        api_key = load_api_key()
+    except FileNotFoundError:
+        notify(f"missing API key at {API_KEY_FILE}", "critical")
+        sys.exit(1)
+
+    # New speech preempts old speech, then we own the pidfile for our group.
+    kill_previous()
+    os.setpgrp()
+    with open(PIDFILE, "w") as f:
+        f.write(str(os.getpgrp()))
+
+    curl = subprocess.Popen(
+        ["curl", "-sS", "-N", "-m", "120", "-X", "POST",
+         "-H", f"X-API-Key: {api_key}",
+         "-H", "Content-Type: application/json",
+         "-d", json.dumps({"text": text}),
+         ENDPOINT],
+        stdout=subprocess.PIPE,
+    )
+
+    player = None
+    chunks = 0
+    event = None
+    err = None
+
+    def player_stdin(rate):
+        nonlocal player
+        if player is None:
+            player = subprocess.Popen(
+                ["pw-cat", "--playback", "--raw", "--format", "s16",
+                 "--rate", str(rate), "--channels", "1", "-"],
+                stdin=subprocess.PIPE,
+            )
+        return player.stdin
+
+    try:
+        for raw in curl.stdout:
+            line = raw.decode("utf-8", "replace").rstrip("\r\n")
+            if line.startswith("event:"):
+                event = line[6:].strip()
+            elif line.startswith("data:"):
+                data = line[5:].strip()
+                if event == "chunk":
+                    obj = json.loads(data)
+                    pcm, rate = pcm_from_chunk_wav(obj["audio_b64"])
+                    if pcm:
+                        player_stdin(rate or DEFAULT_RATE).write(pcm)
+                        chunks += 1
+                elif event == "error":
+                    try:
+                        err = json.loads(data).get("error", data)
+                    except json.JSONDecodeError:
+                        err = data
+            # blank line terminates an SSE record; nothing to do.
+    except BrokenPipeError:
+        pass
+    finally:
+        if curl.stdout:
+            curl.stdout.close()
+        curl.wait()
+        if player is not None:
+            try:
+                player.stdin.close()
+            except BrokenPipeError:
+                pass
+            player.wait()
+        try:
+            os.unlink(PIDFILE)
+        except FileNotFoundError:
+            pass
+
+    if err:
+        notify(f"TTS error: {err}", "critical")
+    elif chunks == 0:
+        notify("no audio — is the Orpheus backend (:8020) up?", "critical")
+
+
+if __name__ == "__main__":
+    main()

@@ -3,7 +3,22 @@
     "spacing": 8,
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/airpods", "pulseaudio", "network", "battery", "tray"],
+    "modules-right": ["custom/screenshot", "custom/screenrecord", "custom/bt-battery", "pulseaudio", "network", "battery", "tray"],
+
+    "custom/screenshot": {
+        "format": "󰄄",
+        "tooltip": true,
+        "tooltip-format": "Screenshot a region (save + copy to clipboard)",
+        "on-click": "/home/paul/.local/bin/screenshot region"
+    },
+
+    "custom/screenrecord": {
+        "exec": "/home/paul/.local/bin/screenrecord status",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 8,
+        "on-click": "/home/paul/.local/bin/screenrecord toggle"
+    },
 
     "hyprland/workspaces": {
         "format": "{id}",
@@ -34,12 +49,11 @@
         "on-click": "networkmanager_dmenu"
     },
 
-    "custom/airpods": {
-        "exec": "/home/paul/.local/bin/bt-airpods status",
+    "custom/bt-battery": {
+        "exec": "/home/paul/.local/bin/bt-battery",
         "return-type": "json",
-        "interval": 10,
-        "signal": 8,
-        "on-click": "/home/paul/.local/bin/bt-airpods toggle"
+        "interval": 60,
+        "on-click": "/home/paul/.local/bin/bt-battery toggle"
     },
 
     "pulseaudio": {

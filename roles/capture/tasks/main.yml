@@ -1,0 +1,24 @@
+---
+# Screenshot + screen-recording helper scripts (used by both hyprland
+# keybinds and the waybar buttons). Packages are installed by the
+# `packages` role: grim, slurp, satty, wf-recorder, wl-clipboard,
+# libnotify, jq.
+- name: Create local bin dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.local/bin"
+    state: directory
+
+- name: Deploy screenshot helper script
+  become: false
+  copy:
+    src: screenshot
+    dest: "{{ lookup('env', 'HOME') }}/.local/bin/screenshot"
+    mode: "0755"
+
+- name: Deploy screen-recording helper script
+  become: false
+  copy:
+    src: screenrecord
+    dest: "{{ lookup('env', 'HOME') }}/.local/bin/screenrecord"
+    mode: "0755"

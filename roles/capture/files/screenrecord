@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# Screen recording toggle for Hyprland (video only) using wf-recorder.
+#
+# Usage:
+#   screenrecord            toggle: if idle, pop a chooser then start; else stop
+#   screenrecord toggle     same as above
+#   screenrecord stop       stop if recording (no-op otherwise)
+#   screenrecord status     print waybar JSON (idle/recording) and exit
+#
+# Starting opens a rofi menu to pick WHAT to record:
+#   - any monitor / output (labelled with the apps shown on it, e.g. mirage)
+#   - a region you drag with slurp
+#   - the currently focused window
+#
+# Recordings are written to ~/videos/recordings as .mp4.
+# Waybar is poked with SIGRTMIN+8 so its indicator updates immediately.
+set -uo pipefail
+
+dir="$HOME/videos/recordings"
+pidfile="/tmp/wf-recorder.pid"
+statefile="/tmp/wf-recorder.current"
+WAYBAR_SIGNAL="RTMIN+8"
+MENU="rofi -dmenu -i -p Record -lines 12"
+
+is_recording() {
+    [ -f "$pidfile" ] && kill -0 "$(cat "$pidfile" 2>/dev/null)" 2>/dev/null
+}
+
+refresh_waybar() {
+    pkill -"$WAYBAR_SIGNAL" waybar 2>/dev/null || true
+}
+
+stop_recording() {
+    local pid file
+    pid=$(cat "$pidfile" 2>/dev/null)
+    # SIGINT lets wf-recorder flush and finalize the container cleanly.
+    kill -INT "$pid" 2>/dev/null || true
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 0.3
+    done
+    file=$(cat "$statefile" 2>/dev/null || true)
+    rm -f "$pidfile" "$statefile"
+    notify-send -i media-record "Recording stopped" "Saved ${file:-recording}" 2>/dev/null || true
+    refresh_waybar
+}
+
+# Spawn wf-recorder in the background and record its pid + target file.
+launch() {
+    local file="$1"; shift
+    echo "$file" > "$statefile"
+    wf-recorder "$@" -f "$file" >/dev/null 2>&1 &
+    echo $! > "$pidfile"
+    notify-send -i media-record "Recording started" "$(basename "$file")" 2>/dev/null || true
+    refresh_waybar
+}
+
+# Build the chooser menu. Each line is "KIND|NAME|<visible label>".
+build_menu() {
+    local monitors clients
+    monitors=$(hyprctl monitors -j)
+    clients=$(hyprctl clients -j)
+    jq -rn --argjson mon "$monitors" --argjson cl "$clients" '
+        ($mon | sort_by(.name)[]) as $m
+        | ($cl
+            | map(select(.workspace.id == $m.activeWorkspace.id))
+            | map(.class) | map(select(. != null and . != "")) | unique
+            | join(", ")) as $apps
+        | "OUT|\($m.name)|󰍹 \($m.name)  —  \(if $apps == "" then "(empty)" else $apps end)"
+    '
+    printf 'REGION||󰒉 Region (draw a box)\n'
+    printf 'WINDOW||󰖯 Active window (focused)\n'
+}
+
+start_recording() {
+    local menu sel row kind name file geom
+
+    # No menu tool available -> fall back to recording the focused output.
+    if ! command -v "${MENU%% *}" >/dev/null 2>&1; then
+        name=$(hyprctl monitors -j | jq -r '(.[] | select(.focused==true).name) // .[0].name')
+        mkdir -p "$dir"
+        launch "$dir/recording_$(date +%Y%m%d_%H%M%S).mp4" -o "$name"
+        return 0
+    fi
+
+    menu=$(build_menu)
+    sel=$(printf '%s\n' "$menu" | cut -d'|' -f3 | $MENU) || return 0
+    [ -z "$sel" ] && return 0
+
+    row=$(printf '%s\n' "$menu" | awk -F'|' -v s="$sel" '$3 == s {print; exit}')
+    [ -z "$row" ] && return 0
+    kind=${row%%|*}
+    name=$(printf '%s' "$row" | cut -d'|' -f2)
+
+    mkdir -p "$dir"
+    file="$dir/recording_$(date +%Y%m%d_%H%M%S).mp4"
+
+    case "$kind" in
+        OUT)
+            launch "$file" -o "$name" ;;
+        REGION)
+            geom=$(slurp) || return 0
+            [ -z "$geom" ] && return 0
+            launch "$file" -g "$geom" ;;
+        WINDOW)
+            geom=$(hyprctl activewindow -j \
+                | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+            launch "$file" -g "$geom" ;;
+    esac
+}
+
+case "${1:-toggle}" in
+    status)
+        if is_recording; then
+            printf '{"text":"⏺ REC","class":"recording","tooltip":"Recording… click to stop"}\n'
+        else
+            printf '{"text":"󰕧","class":"idle","tooltip":"Click to start screen recording"}\n'
+        fi
+        ;;
+    stop)
+        is_recording && stop_recording
+        ;;
+    toggle|"")
+        if is_recording; then
+            stop_recording
+        else
+            start_recording
+        fi
+        ;;
+    *)
+        echo "usage: $0 [toggle|stop|status]" >&2
+        exit 1
+        ;;
+esac

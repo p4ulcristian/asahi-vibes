@@ -1,0 +1,33 @@
+#!/usr/bin/nft -f
+#
+# Backstop for the "Discord/WebRTC hangs because of wg0" problem.
+#
+# wg0 is always up (PersistentKeepalive), so WebRTC enumerates 10.99.0.3 as an
+# ICE host candidate and may bind a socket to it. Packets sourced from 10.99.0.3
+# toward a public media server get routed out wlan0 with the wrong source and are
+# silently blackholed -> the ICE check never gets a reply -> the call "hangs"
+# until the connectivity check times out (tens of seconds).
+#
+# This dedicated table REJECTs (not drops) any traffic sourced from the wg0 IP
+# that is NOT destined for the VPN subnet. The local socket gets an immediate
+# ICMP "admin prohibited" error, so ICE discards the wg0 candidate in
+# milliseconds and fails over to wlan0 instead of hanging. Traffic to the VPN
+# itself (e.g. iris at 10.99.0.2:4260) is untouched.
+#
+# It lives in its own table ("wg_webrtc_fix") so it composes with any other
+# firewall config without clobbering it. The flush-on-reload idiom below keeps
+# `nft -f` idempotent.
+
+table inet wg_webrtc_fix
+delete table inet wg_webrtc_fix
+
+table inet wg_webrtc_fix {
+	chain output {
+		type filter hook output priority 0; policy accept;
+
+		# Anything bound to the wg0 source IP heading off-VPN is the broken
+		# path — fail it fast so ICE moves on to the real interface.
+		ip saddr 10.99.0.3 ip daddr != 10.99.0.0/24 \
+			reject with icmpx type admin-prohibited
+	}
+}

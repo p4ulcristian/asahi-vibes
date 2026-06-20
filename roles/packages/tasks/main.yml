@@ -17,9 +17,18 @@
       - rofi
       - grim
       - slurp
+      - satty
+      - wf-recorder
+      - wl-clipboard
+      - wtype
+      - python-evdev
+      - pipewire
+      - libnotify
+      - mako
+      - jq
       - wdisplays
       - base-devel
-      - hyprpaper
+      - awww
       - hyprlock
       - hypridle
       - thunar
@@ -30,6 +39,8 @@
       - telegram-desktop
       - bluez
       - bluez-utils
+      - blueman
+      - upower
       - brightnessctl
       - calf
       - pipewire-zeroconf
@@ -60,6 +71,5 @@
     - anyrun
     - zsh-theme-powerlevel10k-git
     - networkmanager-dmenu-git
-    - vesktop
   register: yay_result
   changed_when: "'nothing to do' not in yay_result.stdout"

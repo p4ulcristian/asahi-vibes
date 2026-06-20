@@ -12,8 +12,11 @@
     - 1password
     - anyrun
     - keyd
+    - iris
     - logind
+    - mako
+    - capture
     - waybar
-    - hyprpaper
+    - wallpaper
     - sddm
     - pipewire

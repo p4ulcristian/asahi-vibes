@@ -25,11 +25,11 @@
     path: "{{ lookup('env', 'HOME') }}/.local/bin"
     state: directory
 
-- name: Deploy bt-airpods helper script
+- name: Deploy bt-battery helper script
   become: false
   copy:
-    src: bt-airpods
-    dest: "{{ lookup('env', 'HOME') }}/.local/bin/bt-airpods"
+    src: bt-battery
+    dest: "{{ lookup('env', 'HOME') }}/.local/bin/bt-battery"
     mode: "0755"
 
 - name: Create waybar.service systemd drop-in dir

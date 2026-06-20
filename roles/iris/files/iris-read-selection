@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# iris-read-selection — speak the currently highlighted text aloud.
+#
+# Uses the Wayland PRIMARY selection (whatever is highlighted right now, no
+# copy needed); falls back to the regular clipboard if nothing is selected.
+# This is the zero-friction "read this to me" hotkey target.
+set -euo pipefail
+
+text="$(wl-paste --primary --no-newline 2>/dev/null || true)"
+if [ -z "${text//[[:space:]]/}" ]; then
+    text="$(wl-paste --no-newline 2>/dev/null || true)"
+fi
+
+if [ -z "${text//[[:space:]]/}" ]; then
+    notify-send -u low -t 1500 "🔊 iris-say" "nothing selected"
+    exit 0
+fi
+
+printf '%s' "$text" | iris-say

@@ -1,0 +1,66 @@
+---
+# iris — voice I/O against the iris-comms server (10.99.0.2:4260).
+#
+#   STT (input):  hold CapsLock (keyd maps capslock->f13) -> iris-ptt-daemon
+#                 records the mic, POSTs /stt/transcribe, pastes the text.
+#   TTS (output): iris-say sends text to /tts/stream and plays the reply;
+#                 iris-read-selection speaks the highlighted text; iris-actions
+#                 is the anyrun popup menu of text actions.
+#
+# Requires (installed by the `packages` role): python-evdev, wl-clipboard,
+# wtype, curl, libnotify, pipewire (pw-record/pw-cat), keyd, anyrun.
+# The CapsLock->F13 remap lives in the `keyd` role. The API key must be placed
+# by hand at ~/.config/iris-ptt/api_key (mode 600) — not managed here.
+
+- name: Create local bin dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.local/bin"
+    state: directory
+
+- name: Deploy iris voice scripts
+  become: false
+  copy:
+    src: "{{ item }}"
+    dest: "{{ lookup('env', 'HOME') }}/.local/bin/{{ item }}"
+    mode: "0755"
+  loop:
+    - iris-ptt-daemon.py
+    - iris-say
+    - iris-read-selection
+    - iris-actions
+
+- name: Ensure iris-ptt config dir exists (holds the API key)
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/iris-ptt"
+    state: directory
+    mode: "0700"
+
+- name: Create systemd user dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/systemd/user"
+    state: directory
+
+- name: Deploy iris-ptt systemd user service
+  become: false
+  template:
+    src: iris-ptt.service.j2
+    dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/iris-ptt.service"
+  register: iris_ptt_unit
+
+- name: Reload systemd user daemon if the unit changed
+  become: false
+  systemd:
+    scope: user
+    daemon_reload: true
+  when: iris_ptt_unit.changed
+
+- name: Enable and (re)start iris-ptt user service
+  become: false
+  systemd:
+    scope: user
+    name: iris-ptt.service
+    enabled: true
+    state: "{{ 'restarted' if iris_ptt_unit.changed else 'started' }}"

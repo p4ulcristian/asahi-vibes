@@ -1,0 +1,82 @@
+---
+# NetworkManager owns wlan0 on this host; systemd-networkd manages nothing.
+# But systemd-networkd-wait-online stays enabled by preset and finds no links,
+# so it times out after 120s. network-online.target Wants it, which delays
+# wg-quick@wg0 -> multi-user.target -> graphical.target by ~2 minutes every boot.
+# That stall makes the uwsm Hyprland session (which gates on graphical.target)
+# appear frozen when logging in early. NetworkManager-wait-online already
+# satisfies network-online.target in ~3s, so mask the dead networkd waiter.
+- name: Mask systemd-networkd-wait-online (NetworkManager handles the network)
+  become: true
+  systemd:
+    name: systemd-networkd-wait-online.service
+    masked: true
+    enabled: false
+
+# wg0 is always up (persistent keepalive), so Chromium's WebRTC enumerates it as
+# an ICE candidate (10.99.0.3). That interface only routes 10.99.0.0/24, so packets
+# sourced from it can't reach Discord/etc. media servers, and the DTLS handshake
+# hangs forever ("stuck at DTLS Connecting"). Restrict WebRTC to the default-route
+# interface (wlan0) so it ignores wg0. Requires a full Chromium restart to load.
+- name: Ensure Chromium managed-policy directory exists
+  become: true
+  file:
+    path: /etc/chromium/policies/managed
+    state: directory
+    mode: "0755"
+
+- name: Deploy Chromium WebRTC policy so WebRTC ignores the wg0 VPN interface
+  become: true
+  copy:
+    src: chromium-webrtc-vpn-fix.json
+    dest: /etc/chromium/policies/managed/webrtc-vpn-fix.json
+
+# The Chromium policy above is the first line of defense, but it only covers
+# Chromium and isn't fully reliable (apps can still bind to the wg0 IP and hang).
+# This network-layer backstop makes the broken path fail in milliseconds instead:
+# a dedicated nftables table REJECTs any traffic sourced from the wg0 IP that
+# isn't destined for the VPN subnet, so a stray WebRTC socket bound to 10.99.0.3
+# gets an instant ICMP error and ICE fails over to wlan0. VPN traffic (iris on
+# 10.99.0.2) is untouched. See files/wg-webrtc-fix.nft for the full rationale.
+- name: Ensure nftables drop-in directory exists
+  become: true
+  file:
+    path: /etc/nftables.d
+    state: directory
+    mode: "0755"
+
+- name: Deploy the wg0 WebRTC-hang backstop nftables rule
+  become: true
+  copy:
+    src: wg-webrtc-fix.nft
+    dest: /etc/nftables.d/wg-webrtc-fix.nft
+    mode: "0644"
+  register: wg_webrtc_nft
+
+- name: Deploy the nftables loader service
+  become: true
+  copy:
+    src: wg-webrtc-fix.service
+    dest: /etc/systemd/system/wg-webrtc-fix.service
+    mode: "0644"
+  register: wg_webrtc_unit
+
+- name: Reload systemd if the loader unit changed
+  become: true
+  systemd:
+    daemon_reload: true
+  when: wg_webrtc_unit.changed
+
+- name: Enable and start the wg0 WebRTC backstop
+  become: true
+  systemd:
+    name: wg-webrtc-fix.service
+    enabled: true
+    state: started
+
+- name: Reload the backstop rules when they change
+  become: true
+  systemd:
+    name: wg-webrtc-fix.service
+    state: reloaded
+  when: wg_webrtc_nft.changed and not wg_webrtc_unit.changed

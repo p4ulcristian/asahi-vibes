@@ -1,0 +1,40 @@
+---
+# Per-workspace / per-virtual-screen wallpapers via awww (the renamed swww).
+# awww is installed by the packages role; the listener is pure Python (no socat).
+
+- name: Create hypr config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/hypr"
+    state: directory
+
+- name: Create per-workspace wallpaper dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/pictures/wallpapers/workspaces"
+    state: directory
+
+- name: Download Everforest wallpapers (one per workspace / virtual screen)
+  become: false
+  get_url:
+    url: "https://raw.githubusercontent.com/Apeiros-46B/everforest-walls/main/{{ item.src }}"
+    dest: "{{ lookup('env', 'HOME') }}/pictures/wallpapers/workspaces/{{ item.ws }}.png"
+    mode: '0644'
+  loop:
+    - { ws: 1,  src: "nature/green_forest_1.png" }
+    - { ws: 2,  src: "nature/fog_forest_1.png" }
+    - { ws: 3,  src: "nature/foggy_valley_1.png" }
+    - { ws: 4,  src: "nature/mist_forest_1.png" }
+    - { ws: 5,  src: "nature/waterfall_1.png" }
+    - { ws: 6,  src: "nature/ocean_front_1.png" }
+    - { ws: 7,  src: "nature/rocky_beach_1.png" }
+    - { ws: 8,  src: "other/megacity_1.png" }
+    - { ws: 9,  src: "other/futuristic_green.png" }
+    - { ws: 10, src: "nature/polyscape_1.png" }
+
+- name: Deploy per-workspace wallpaper daemon
+  become: false
+  copy:
+    src: workspace-wallpaper.py
+    dest: "{{ lookup('env', 'HOME') }}/.config/hypr/workspace-wallpaper.py"
+    mode: '0755'

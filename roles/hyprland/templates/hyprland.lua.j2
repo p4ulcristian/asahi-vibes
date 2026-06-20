@@ -4,6 +4,7 @@ local terminal    = "kitty"
 local browser     = "chromium"
 local menu        = "anyrun"
 local claudia     = "chromium --app=https://claudia.irisdoes.work/"
+local discord     = "chromium --app=https://discord.com/app"
 local mainMod     = "SUPER"
 
 -- Monitor
@@ -14,7 +15,7 @@ hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.0
 
 -- Autostart
 hl.on("hyprland.start", function()
-    hl.exec_cmd("{{ lookup('env', 'HOME') }}/.config/hypr/start-hyprpaper.sh")
+    hl.exec_cmd("python3 {{ lookup('env', 'HOME') }}/.config/hypr/workspace-wallpaper.py")
     -- waybar is managed by systemd (waybar.service, auto-restarts on crash)
     hl.exec_cmd("1password --silent")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
@@ -71,10 +72,18 @@ hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + K",      hl.dsp.exec_cmd(claudia))
+hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
 
 -- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
+
+-- Keybindings: text-to-speech (iris-say -> iris-comms /tts/stream)
+-- CapsLock push-to-talk handles STT input; these handle TTS output.
+local irisRead    = "{{ lookup('env', 'HOME') }}/.local/bin/iris-read-selection"
+local irisActions = "{{ lookup('env', 'HOME') }}/.local/bin/iris-actions"
+hl.bind(mainMod .. " + R",         hl.dsp.exec_cmd(irisRead))     -- speak highlighted text
+hl.bind(mainMod .. " + ALT + R",   hl.dsp.exec_cmd(irisActions))  -- popup action menu on selection
 
 -- Keybindings: window management
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
@@ -95,8 +104,18 @@ for i = 1, 9 do
     hl.bind(mainMod .. " + SHIFT + " .. i,     hl.dsp.window.move({ workspace = i }))
 end
 
--- Keybindings: screenshot (area to clipboard)
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | tee ~/pictures/screenshot_$(date +%Y%m%d_%H%M%S).png | wl-copy && notify-send "Screenshot" "Saved and copied to clipboard"'))
+-- Keybindings: screenshots (helper script handles grim/slurp/satty/wl-copy)
+local screenshot  = "{{ lookup('env', 'HOME') }}/.local/bin/screenshot"
+local screenrecord = "{{ lookup('env', 'HOME') }}/.local/bin/screenrecord"
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd(screenshot .. " region"))   -- drag a region -> save + clipboard
+hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(screenshot .. " annotate")) -- region -> annotate in satty
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(screenshot .. " screen"))   -- whole screen
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(screenshot .. " window"))   -- active window
+hl.bind("Print",                   hl.dsp.exec_cmd(screenshot .. " screen"))   -- Print key (if the keyboard has one)
+hl.bind(mainMod .. " + Print",     hl.dsp.exec_cmd(screenshot .. " window"))
+
+-- Keybindings: screen recording (toggle, video only -> ~/videos/recordings)
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(screenrecord .. " toggle"))
 
 -- Gestures
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })

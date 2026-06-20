@@ -4,75 +4,67 @@
 }
 
 window#waybar {
-    background-color: rgba(30, 35, 38, 0.92);
-    color: #d3c6aa;
-    transition-property: background-color;
-    transition-duration: .5s;
-}
-
-#workspaces button {
-    padding: 0 8px;
     background-color: transparent;
-    color: #859289;
-    border-radius: 4px;
-    margin: 4px 2px;
+    color: #0f2e2a;
 }
 
-#workspaces button:hover {
-    background: rgba(167, 192, 128, 0.15);
-    color: #d3c6aa;
-}
+/* --- one aqua capsule for everything --- */
 
-#workspaces button.active {
-    color: #a7c080;
-    background-color: rgba(167, 192, 128, 0.2);
-    font-weight: bold;
-}
-
-#workspaces button.urgent {
-    color: #e67e80;
-}
-
+#workspaces button,
 #clock,
 #battery,
 #network,
 #pulseaudio,
-#custom-airpods,
+#custom-screenshot,
+#custom-screenrecord,
+#custom-bt-battery,
 #tray {
+    background-color: #5fe3cf;
+    color: #0f2e2a;
+    border-radius: 14px;
     padding: 0 12px;
-    margin: 4px 2px;
-    border-radius: 4px;
-    color: #2d353b;
+    margin: 4px 3px;
+    box-shadow: 0 0 8px rgba(95, 227, 207, 0.45);
 }
 
-#custom-airpods {
-    background-color: #83c092;
+#workspaces button {
+    padding: 0 10px;
 }
 
-#custom-airpods.disconnected {
-    background-color: #4a555b;
-    color: #d3c6aa;
+#workspaces button:hover,
+#custom-screenshot:hover,
+#custom-screenrecord:hover {
+    background-color: #8defdd;
 }
 
-#custom-airpods.unpaired {
-    background-color: #4a555b;
-    color: #859289;
+/* screen recording in progress: red alarm pill, same language as critical battery */
+#custom-screenrecord.recording {
+    background-color: #e67e80;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(230, 126, 128, 0.6);
+    animation-name: blink;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#workspaces button.active {
+    background-color: #2fd9bf;
+    font-weight: bold;
+    box-shadow: 0 0 12px rgba(47, 217, 191, 0.7);
 }
 
 #clock {
-    background-color: #a7c080;
     font-weight: bold;
 }
 
-#battery {
-    background-color: #d699b6;
+/* tray: one pill, icons spaced via "spacing" in config */
+#tray {
+    padding: 0 10px;
 }
 
-#battery.charging,
-#battery.plugged {
-    background-color: #83c092;
-}
-
+/* critical battery stays a red alarm — the one signal worth breaking color for */
 @keyframes blink {
     to {
         background-color: #e67e80;
@@ -82,32 +74,26 @@ window#waybar {
 
 #battery.critical:not(.charging) {
     background-color: #e67e80;
+    box-shadow: 0 0 10px rgba(230, 126, 128, 0.6);
     animation-name: blink;
-    animation-duration: 0.5s;
+    animation-duration: 0.7s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-direction: alternate;
 }
 
-#network {
-    background-color: #7fbbb3;
-}
-
-#network.disconnected {
-    background-color: #e67e80;
-}
-
-#pulseaudio {
+/* bluetooth device battery: amber when low, red alarm when critical */
+#custom-bt-battery.warning {
     background-color: #dbbc7f;
+    box-shadow: 0 0 10px rgba(219, 188, 127, 0.6);
 }
 
-#pulseaudio.muted {
-    background-color: #4a555b;
-    color: #859289;
-}
-
-#tray {
-    background-color: transparent;
-    color: #d3c6aa;
-    padding: 0 6px;
+#custom-bt-battery.critical {
+    background-color: #e67e80;
+    box-shadow: 0 0 10px rgba(230, 126, 128, 0.6);
+    animation-name: blink;
+    animation-duration: 0.7s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
 }

@@ -1,0 +1,16 @@
+[Unit]
+Description=Reject off-VPN traffic sourced from the wg0 IP (WebRTC/Discord hang fix)
+# The rule matches by source address, so it is valid whether or not wg0 is up,
+# but order it after wg-quick so the interface/address exists when we load.
+After=wg-quick@wg0.service network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nft -f /etc/nftables.d/wg-webrtc-fix.nft
+ExecStop=/usr/bin/nft delete table inet wg_webrtc_fix
+ExecReload=/usr/bin/nft -f /etc/nftables.d/wg-webrtc-fix.nft
+
+[Install]
+WantedBy=multi-user.target

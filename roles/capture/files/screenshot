@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Screenshot helper for Hyprland.
+#   grim  - capture
+#   slurp - interactive region/window picker
+#   satty - optional annotation editor
+#   wl-copy / notify-send - clipboard + desktop notification
+#
+# Usage: screenshot [region|screen|window|annotate]
+#   region   (default) drag a box, save + copy to clipboard
+#   screen   whole focused output, save + copy
+#   window   active window, save + copy
+#   annotate drag a box, open in satty to mark up, then save + copy
+set -uo pipefail
+
+mode="${1:-region}"
+dir="$HOME/pictures/screenshots"
+mkdir -p "$dir"
+file="$dir/screenshot_$(date +%Y%m%d_%H%M%S).png"
+
+case "$mode" in
+    region)
+        geom=$(slurp) || exit 0
+        [ -z "$geom" ] && exit 0
+        grim -g "$geom" "$file" || exit 1
+        ;;
+    screen)
+        grim "$file" || exit 1
+        ;;
+    window)
+        geom=$(hyprctl activewindow -j \
+            | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+        grim -g "$geom" "$file" || exit 1
+        ;;
+    annotate)
+        geom=$(slurp) || exit 0
+        [ -z "$geom" ] && exit 0
+        grim -g "$geom" - \
+            | satty --filename - \
+                    --output-filename "$file" \
+                    --copy-command wl-copy \
+                    --early-exit
+        # satty copies to clipboard itself; only notify if it actually saved.
+        [ -f "$file" ] && notify-send -i "$file" "Screenshot" "Annotated → $file" 2>/dev/null
+        exit 0
+        ;;
+    *)
+        echo "usage: $0 [region|screen|window|annotate]" >&2
+        exit 1
+        ;;
+esac
+
+wl-copy < "$file"
+notify-send -i "$file" "Screenshot" "Saved $file (copied to clipboard)" 2>/dev/null || true

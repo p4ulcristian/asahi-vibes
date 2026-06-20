@@ -12,6 +12,13 @@
     dest: /etc/keyd/default.conf
   notify: restart keyd
 
+- name: Deploy keyd config for Logitech MX Keys Mini
+  become: true
+  copy:
+    src: logitech-mxkeys.conf
+    dest: /etc/keyd/logitech-mxkeys.conf
+  notify: restart keyd
+
 - name: Enable and start keyd
   become: true
   systemd:
