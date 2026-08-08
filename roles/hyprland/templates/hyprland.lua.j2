@@ -77,9 +77,10 @@ hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + K",      hl.dsp.exec_cmd(claudia))
 hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
--- Toggle taskbar. SHIFT is required: plain Super+T never reaches Hyprland --
--- keyd's cmd layer remaps Cmd+T to Ctrl+T (mac-style new tab) at the evdev level.
-hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("pkill -SIGUSR1 waybar"))
+-- Toggle taskbar. O, not T: keyd's cmd layer remaps Cmd+T to Ctrl+T (mac-style
+-- new tab) at the evdev level, and Shift+T falls back to the same remap, so
+-- neither ever reaches Hyprland. O is unmapped in keyd and passes through.
+hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("pkill -SIGUSR1 waybar"))
 
 -- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
