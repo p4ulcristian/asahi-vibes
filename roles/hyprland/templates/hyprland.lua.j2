@@ -85,11 +85,6 @@ hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("pkill -SIGUSR1 waybar"))
 -- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
--- Keybindings: text-to-speech (iris-say -> iris-comms /tts/stream)
--- CapsLock push-to-talk handles STT input; this reads the selection aloud.
-local irisRead = "{{ lookup('env', 'HOME') }}/.local/bin/iris-read-selection"
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(irisRead))   -- speak highlighted text
-
 -- Keybindings: iris-talk (voice companion that watches the desktop and talks back)
 -- Tap to start listening, tap again to send + hear the reply. Also clickable on
 -- the waybar eye (left = chat-history popup, right = this toggle, middle = reset).
