@@ -38,6 +38,9 @@ if [[ -n ${terminfo[smkx]} ]] && [[ -n ${terminfo[rmkx]} ]]; then
 fi
 
 # aliases
+# Inside kitty, use the ssh kitten: copies terminfo (and shell setup) to
+# remote hosts so TERM=xterm-kitty doesn't break things there.
+[[ -n "$KITTY_WINDOW_ID" ]] && alias ssh='kitten ssh'
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias claude='claude --dangerously-skip-permissions'

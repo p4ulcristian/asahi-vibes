@@ -46,6 +46,9 @@
       - pipewire-zeroconf
       - avahi
       - nss-mdns
+      - fuse2
+      - moonlight-qt
+      - kitty
     state: latest
     update_cache: true
 
