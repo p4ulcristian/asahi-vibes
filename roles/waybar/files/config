@@ -3,7 +3,18 @@
     "spacing": 8,
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/screenshot", "custom/screenrecord", "custom/bt-battery", "pulseaudio", "network", "battery", "tray"],
+    "modules-right": ["custom/iris", "custom/screenshot", "custom/screenrecord", "custom/bt-battery", "pulseaudio", "network", "battery", "tray"],
+
+    "custom/iris": {
+        "exec": "/home/paul/.local/bin/iris-talk waybar",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 9,
+        "tooltip": true,
+        "on-click": "/home/paul/.local/bin/iris-talk panel",
+        "on-click-right": "/home/paul/.local/bin/iris-talk toggle",
+        "on-click-middle": "/home/paul/.local/bin/iris-talk reset"
+    },
 
     "custom/screenshot": {
         "format": "󰄄",

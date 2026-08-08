@@ -1,6 +1,7 @@
 -- My Hyprland config
 
 local terminal    = "kitty"
+local herdr       = "kitty {{ lookup('env', 'HOME') }}/.local/bin/herdr"
 local browser     = "chromium"
 local menu        = "anyrun"
 local claudia     = "chromium --app=https://claudia.irisdoes.work/"
@@ -11,7 +12,8 @@ local mainMod     = "SUPER"
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 -- Always mirror the SmartGlasses (DP-1) onto the laptop panel (eDP-1).
 -- The catch-all rule above keeps eDP-1 working on its own when the glasses are unplugged.
-hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.0, mirror = "DP-1" })
+-- scale 1.333333 -> logical 1920x1200 (16:10) on the 2560x1600 panel
+hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.333333, mirror = "DP-1" })
 
 -- Autostart
 hl.on("hyprland.start", function()
@@ -69,11 +71,13 @@ hl.animation({ leaf = "workspaces",  enabled = true, speed = 6,  bezier = "defau
 
 -- Keybindings: apps
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd(herdr))
 hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + K",      hl.dsp.exec_cmd(claudia))
 hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + T",      hl.dsp.exec_cmd("pkill -SIGUSR1 waybar")) -- toggle taskbar
 
 -- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
@@ -82,6 +86,12 @@ hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
 -- CapsLock push-to-talk handles STT input; this reads the selection aloud.
 local irisRead = "{{ lookup('env', 'HOME') }}/.local/bin/iris-read-selection"
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(irisRead))   -- speak highlighted text
+
+-- Keybindings: iris-talk (voice companion that watches the desktop and talks back)
+-- Tap to start listening, tap again to send + hear the reply. Also clickable on
+-- the waybar eye (left = chat-history popup, right = this toggle, middle = reset).
+local irisTalk = "{{ lookup('env', 'HOME') }}/.local/bin/iris-talk"
+hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(irisTalk .. " toggle"))
 
 -- Keybindings: window management
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
@@ -134,6 +144,27 @@ hl.window_rule({
     name  = "suppress-maximize-events",
     match = { class = ".*" },
     suppress_event = "maximize",
+})
+
+-- iris chat-history popup: float it centered (opened by clicking the waybar eye)
+hl.window_rule({
+    name  = "iris-popup-float",
+    match = { class = "iris-popup" },
+    float = true,
+    size  = "820 560",
+    center = true,
+})
+
+-- iris live panel: the chromium --app window showing what iris/Claude is doing.
+-- Its Wayland class is "chrome-127.0.0.1__-Default"; an exact-string match here
+-- fails to float it (xdg app_id timing), but the "chrome-127.*" prefix matches
+-- reliably — and only the localhost panel uses a 127.* class, never claudia/etc.
+hl.window_rule({
+    name  = "iris-panel-float",
+    match = { class = "chrome-127.*" },
+    float = true,
+    size  = "900 640",
+    center = true,
 })
 
 -- Mirage AR compositor keybinds

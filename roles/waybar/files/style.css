@@ -15,6 +15,7 @@ window#waybar {
 #battery,
 #network,
 #pulseaudio,
+#custom-iris,
 #custom-screenshot,
 #custom-screenrecord,
 #custom-bt-battery,
@@ -32,9 +33,48 @@ window#waybar {
 }
 
 #workspaces button:hover,
+#custom-iris:hover,
 #custom-screenshot:hover,
 #custom-screenrecord:hover {
     background-color: #8defdd;
+}
+
+/* --- iris eye states --- */
+/* listening: red alarm pill (mic is hot), like recording */
+#custom-iris.listening {
+    background-color: #e67e80;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(230, 126, 128, 0.6);
+    animation-name: blink;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+/* thinking/loading: amber, pulsing so it reads as "working" */
+@keyframes iris-pulse { to { opacity: 0.4; } }
+#custom-iris.thinking {
+    background-color: #dbbc7f;
+    color: #0f2e2a;
+    box-shadow: 0 0 10px rgba(219, 188, 127, 0.6);
+    animation-name: iris-pulse;
+    animation-duration: 0.65s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+/* speaking: brighter aqua, gentle glow */
+#custom-iris.speaking {
+    background-color: #2fd9bf;
+    color: #0f2e2a;
+    font-weight: bold;
+    box-shadow: 0 0 12px rgba(47, 217, 191, 0.8);
+}
+/* error: red, no blink */
+#custom-iris.error {
+    background-color: #e67e80;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(230, 126, 128, 0.6);
 }
 
 /* screen recording in progress: red alarm pill, same language as critical battery */
