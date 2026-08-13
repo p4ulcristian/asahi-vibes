@@ -75,6 +75,11 @@
       - vicinae
       - awww
       - networkmanager-dmenu-git
+      # waybar drew its glyphs with these; caelestia ships its own fonts
+      # (ttf-material-symbols-variable, ttf-rubik-vf, ttf-cascadia-code-nerd).
+      # kitty and powerlevel10k both use ttf-jetbrains-mono-nerd, which stays.
+      - powerline-fonts
+      - otf-font-awesome
     state: absent
 
 - name: Remove superseded config directories
@@ -105,3 +110,67 @@
   systemd:
     scope: user
     daemon_reload: true
+
+# ---------------------------------------------------------------------------
+# Shell configuration and wallpaper.
+#
+# Caelestia derives its entire Material You palette from the wallpaper, so the
+# wallpaper is a real config input here, not decoration.
+# ---------------------------------------------------------------------------
+
+- name: Create caelestia config dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/caelestia"
+    state: directory
+
+# Without services.weatherLocation the shell geolocates by IP (ip-api.com),
+# which resolves to the ISP's city rather than ours.
+- name: Deploy caelestia shell config
+  become: false
+  copy:
+    src: shell.json
+    dest: "{{ lookup('env', 'HOME') }}/.config/caelestia/shell.json"
+    backup: yes
+
+- name: Create wallpaper dir
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/pictures/wallpapers"
+    state: directory
+
+- name: Download Everforest wallpapers
+  become: false
+  get_url:
+    url: "https://raw.githubusercontent.com/Apeiros-46B/everforest-walls/main/{{ item.src }}"
+    dest: "{{ lookup('env', 'HOME') }}/pictures/wallpapers/{{ item.name }}.png"
+    mode: "0644"
+  loop:
+    - { name: green-forest,     src: "nature/green_forest_1.png" }
+    - { name: fog-forest,       src: "nature/fog_forest_1.png" }
+    - { name: foggy-valley,     src: "nature/foggy_valley_1.png" }
+    - { name: mist-forest,      src: "nature/mist_forest_1.png" }
+    - { name: waterfall,        src: "nature/waterfall_1.png" }
+    - { name: ocean-front,      src: "nature/ocean_front_1.png" }
+    - { name: rocky-beach,      src: "nature/rocky_beach_1.png" }
+    - { name: megacity,         src: "other/megacity_1.png" }
+    - { name: futuristic-green, src: "other/futuristic_green.png" }
+    - { name: polyscape,        src: "nature/polyscape_1.png" }
+
+# Only fires while the shell is running (it is an IPC call). If caelestia is
+# not up yet — first provision, before the Hyprland session starts — this is a
+# no-op and the wallpaper gets set on the next run.
+- name: Check the current wallpaper
+  become: false
+  command: caelestia shell wallpaper get
+  register: current_wallpaper
+  changed_when: false
+  failed_when: false
+
+- name: Set the wallpaper if it is still the packaged default
+  become: false
+  command: >-
+    caelestia wallpaper -f {{ lookup('env', 'HOME') }}/pictures/wallpapers/foggy-valley.png
+  when:
+    - current_wallpaper.rc == 0
+    - "'/etc/xdg/quickshell' in current_wallpaper.stdout"

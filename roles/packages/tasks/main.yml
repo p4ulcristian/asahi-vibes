@@ -12,7 +12,6 @@
       - htop
       - neovim
       - chromium
-      - powerline-fonts
       - grim
       - slurp
       - satty
@@ -31,7 +30,6 @@
       - polkit-gnome
       - ttf-jetbrains-mono-nerd
       - noto-fonts-emoji
-      - otf-font-awesome
       - telegram-desktop
       - bluez
       - bluez-utils

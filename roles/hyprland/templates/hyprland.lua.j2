@@ -20,6 +20,11 @@ hl.on("hyprland.start", function()
     -- caelestia is the whole shell: bar, launcher, notifications, OSDs,
     -- lock screen and wallpaper. -d detaches it from this exec.
     hl.exec_cmd("caelestia shell -d")
+    -- cliphist only ever contains what this watcher stores. Neither caelestia
+    -- nor Wayland records clipboard history on its own: `caelestia clipboard`
+    -- just reads the db this fills. No watcher, no history.
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("1password --silent")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("brightnessctl --device=kbd_backlight set 40%")
@@ -87,6 +92,10 @@ hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("caelestia shell drawers toggle bar")
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("caelestia shell drawers toggle dashboard"))
 hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("caelestia shell drawers toggle utilities"))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("caelestia shell picker open"))
+
+-- Clipboard history. H, not the conventional V: keyd's cmd layer remaps Cmd+V
+-- to Ctrl+V at the evdev level, so Super+V never reaches Hyprland.
+hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("caelestia clipboard"))
 
 -- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
