@@ -1,0 +1,6 @@
+---
+# appledrm ships inside the initramfs, so modprobe.d changes only take effect
+# once the image is rebuilt (and then only after a reboot).
+- name: regenerate initramfs
+  become: true
+  command: mkinitcpio -P

@@ -1,0 +1,7 @@
+---
+- name: Deploy appledrm notch option (full panel height)
+  become: true
+  copy:
+    src: appledrm-notch.conf
+    dest: /etc/modprobe.d/appledrm-notch.conf
+  notify: regenerate initramfs

@@ -12,7 +12,7 @@ local mainMod     = "SUPER"
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 -- Always mirror the SmartGlasses (DP-1) onto the laptop panel (eDP-1).
 -- The catch-all rule above keeps eDP-1 working on its own when the glasses are unplugged.
--- scale 1.333333 -> logical 1920x1200 (16:10) on the 2560x1600 panel
+-- scale 1.333333 -> logical 1920x1248 on the full-height 2560x1664 panel (notch shown)
 hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.333333, mirror = "DP-1" })
 
 -- Autostart
