@@ -5,3 +5,30 @@
     src: appledrm-notch.conf
     dest: /etc/modprobe.d/appledrm-notch.conf
   notify: regenerate initramfs
+
+# ---------------------------------------------------------------------------
+# USB-C DisplayPort alt mode.
+#
+# The DP alt mode driver is a separate module (typec_displayport) and nothing
+# auto-loads it: the typec core, phy_apple_atc and tps6598x all come up on
+# their own, so the port still negotiates power and USB and the machine looks
+# healthy. What is missing is the altmode driver that actually enters DP mode,
+# so an external display reads as "a charger" and DP-1 stays disconnected --
+# the DCP logs dcp_dptx_disconnect(port=0) on every hotplug.
+#
+# typec_nvidia and typec_thunderbolt are listed for the same reason the Asahi
+# docs list them: some adapters and docks advertise their DP capability behind
+# those SVIDs rather than the plain DisplayPort one.
+#
+# Alt mode is negotiated at plug time, so loading these does not light up an
+# already-connected display -- it needs a replug.
+- name: Load USB-C alt mode drivers at boot
+  become: true
+  copy:
+    dest: /etc/modules-load.d/typec-altmodes.conf
+    mode: "0644"
+    content: |
+      # USB-C DisplayPort alt mode (external displays). See roles/display.
+      typec_displayport
+      typec_nvidia
+      typec_thunderbolt
