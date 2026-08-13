@@ -1,0 +1,107 @@
+---
+# Caelestia — a Quickshell-based desktop shell. It replaces four things we used
+# to run separately: waybar (bar), mako (notifications), rofi/vicinae
+# (launcher) and awww (wallpaper + the colour scheme derived from it).
+#
+# Two AUR build notes, both specific to this aarch64 box:
+#
+#   * libcava and python-materialyoucolor declare arch=('x86_64'), but the code
+#     is portable (meson/C and pybind11/C++ respectively) and builds clean on
+#     aarch64. The arch field is untested, not a real constraint -> --ignorearch.
+#
+#   * python-materialyoucolor additionally needs CXX overridden. Arch Linux ARM
+#     builds its python package with distcc, and that leaked into sysconfig:
+#     CXX still points at /usr/lib/distcc/bin/g++, which does not exist here, so
+#     any Python C++ extension build dies with ENOENT. Note that BUILDENV in
+#     /etc/makepkg.conf already has !distcc — that is NOT the cause and changing
+#     it does not help; the path comes from python itself.
+
+- name: Install caelestia AUR dependencies
+  become: false
+  environment:
+    CC: gcc
+    CXX: g++
+  shell: yay -S --noconfirm --needed --mflags="--ignorearch" {{ item }}
+  loop:
+    - libcava
+    - python-materialyoucolor
+    - ttf-rubik-vf
+    - quickshell-git
+  register: caelestia_deps
+  changed_when: "'there is nothing to do' not in caelestia_deps.stdout"
+
+- name: Install caelestia shell and cli
+  become: false
+  environment:
+    CC: gcc
+    CXX: g++
+  shell: yay -S --noconfirm --needed --mflags="--ignorearch" {{ item }}
+  loop:
+    - caelestia-cli
+    - caelestia-shell
+  register: caelestia_pkgs
+  changed_when: "'there is nothing to do' not in caelestia_pkgs.stdout"
+
+# ---------------------------------------------------------------------------
+# Retire what caelestia replaces.
+#
+# Stop the user services first: removing a package does not stop an already
+# running unit, and a stale waybar would keep drawing a second bar until the
+# next reboot. failed_when guards the case where the unit is already gone (a
+# re-run, or a machine that never had it).
+# ---------------------------------------------------------------------------
+
+- name: Stop and disable superseded user services
+  become: false
+  systemd:
+    scope: user
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - waybar.service
+    - mako.service
+    - vicinae.service
+  register: retired_units
+  failed_when: false
+
+- name: Remove superseded packages
+  become: true
+  community.general.pacman:
+    name:
+      - waybar
+      - mako
+      - rofi
+      - vicinae
+      - awww
+      - networkmanager-dmenu-git
+    state: absent
+
+- name: Remove superseded config directories
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/{{ item }}"
+    state: absent
+  loop:
+    - waybar
+    - mako
+    - vicinae
+    - rofi
+
+- name: Remove the waybar systemd drop-in
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/systemd/user/waybar.service.d"
+    state: absent
+
+- name: Remove the per-workspace wallpaper daemon (caelestia owns the wallpaper now)
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.config/hypr/workspace-wallpaper.py"
+    state: absent
+
+- name: Reload the systemd user daemon
+  become: false
+  systemd:
+    scope: user
+    daemon_reload: true

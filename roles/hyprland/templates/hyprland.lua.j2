@@ -3,7 +3,7 @@
 local terminal    = "kitty"
 local herdr       = "kitty {{ lookup('env', 'HOME') }}/.local/bin/herdr"
 local browser     = "chromium"
-local menu        = "anyrun"
+local menu        = "caelestia shell drawers toggle launcher"
 local claudia     = "chromium --app=https://claudia.irisdoes.work/"
 local discord     = "chromium --app=https://discord.com/app"
 local mainMod     = "SUPER"
@@ -17,8 +17,9 @@ hl.monitor({ output = "eDP-1", mode = "preferred", position = "0x0", scale = 1.3
 
 -- Autostart
 hl.on("hyprland.start", function()
-    hl.exec_cmd("python3 {{ lookup('env', 'HOME') }}/.config/hypr/workspace-wallpaper.py")
-    -- waybar is managed by systemd (waybar.service, auto-restarts on crash)
+    -- caelestia is the whole shell: bar, launcher, notifications, OSDs,
+    -- lock screen and wallpaper. -d detaches it from this exec.
+    hl.exec_cmd("caelestia shell -d")
     hl.exec_cmd("1password --silent")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("brightnessctl --device=kbd_backlight set 40%")
@@ -77,19 +78,28 @@ hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("Telegram"))
 hl.bind(mainMod .. " + K",      hl.dsp.exec_cmd(claudia))
 hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(discord))
 hl.bind(mainMod .. " + Space",  hl.dsp.exec_cmd(menu))
--- Toggle taskbar. O, not T: keyd's cmd layer remaps Cmd+T to Ctrl+T (mac-style
+-- Toggle the bar. O, not T: keyd's cmd layer remaps Cmd+T to Ctrl+T (mac-style
 -- new tab) at the evdev level, and Shift+T falls back to the same remap, so
 -- neither ever reaches Hyprland. O is unmapped in keyd and passes through.
-hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("pkill -SIGUSR1 waybar"))
+hl.bind(mainMod .. " + O", hl.dsp.exec_cmd("caelestia shell drawers toggle bar"))
+
+-- Caelestia surfaces. N/U/P are all clear of keyd's cmd layer.
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("caelestia shell drawers toggle dashboard"))
+hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("caelestia shell drawers toggle utilities"))
+hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("caelestia shell picker open"))
 
 -- Keybindings: lock (same path as the power button: logind -> hypridle -> hyprlock)
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- Keybindings: iris-talk (voice companion that watches the desktop and talks back)
--- Tap to start listening, tap again to send + hear the reply. Also clickable on
--- the waybar eye (left = chat-history popup, right = this toggle, middle = reset).
+-- Tap to start listening, tap again to send + hear the reply. These used to be
+-- the waybar eye's click actions (left = panel, right = toggle, middle = reset);
+-- waybar is gone with caelestia, so panel and reset get their own binds. I is
+-- clear of keyd's cmd layer, so all three modifiers pass through.
 local irisTalk = "{{ lookup('env', 'HOME') }}/.local/bin/iris-talk"
-hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(irisTalk .. " toggle"))
+hl.bind(mainMod .. " + I",          hl.dsp.exec_cmd(irisTalk .. " toggle"))
+hl.bind(mainMod .. " + SHIFT + I",  hl.dsp.exec_cmd(irisTalk .. " panel"))
+hl.bind(mainMod .. " + CTRL + I",   hl.dsp.exec_cmd(irisTalk .. " reset"))
 
 -- Keybindings: window management
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
@@ -144,7 +154,7 @@ hl.window_rule({
     suppress_event = "maximize",
 })
 
--- iris chat-history popup: float it centered (opened by clicking the waybar eye)
+-- iris chat-history popup: float it centered (opened by Super+Shift+I)
 hl.window_rule({
     name  = "iris-popup-float",
     match = { class = "iris-popup" },

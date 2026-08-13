@@ -13,8 +13,6 @@
       - neovim
       - chromium
       - powerline-fonts
-      - waybar
-      - rofi
       - grim
       - slurp
       - satty
@@ -24,11 +22,9 @@
       - python-evdev
       - pipewire
       - libnotify
-      - mako
       - jq
       - wdisplays
       - base-devel
-      - awww
       - hyprlock
       - hypridle
       - thunar
@@ -71,8 +67,6 @@
   shell: yay -S --noconfirm --needed {{ item }}
   loop:
     - git-cola
-    - anyrun
     - zsh-theme-powerlevel10k-git
-    - networkmanager-dmenu-git
   register: yay_result
   changed_when: "'nothing to do' not in yay_result.stdout"
