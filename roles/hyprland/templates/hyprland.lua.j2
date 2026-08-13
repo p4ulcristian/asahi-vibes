@@ -150,7 +150,14 @@ hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Media keys
-hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+-- Ceiling is 0.85, not 1.0. The built-in speakers run through asahi-audio's
+-- DSP chain with speakersafetyd behind it, and near full scale that daemon
+-- pulls the tweeter group down by ~8 dB to keep the drivers inside their
+-- excursion limit. Past that point extra volume buys no extra loudness, only
+-- compression artefacts, so the ceiling costs nothing real. Raise it if you
+-- disagree — it is a comfort limit, not the speaker protection itself, which
+-- is enforced in speakersafetyd regardless of what we set here.
+hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 0.85 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
 hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true })
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })

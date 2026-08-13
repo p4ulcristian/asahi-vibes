@@ -174,3 +174,15 @@
   when:
     - current_wallpaper.rc == 0
     - "'/etc/xdg/quickshell' in current_wallpaper.stdout"
+
+# Caelestia reads the profile picture from ~/.face and shows it on the
+# dashboard and lock screen; with no such file the avatar is simply blank.
+# force: no seeds a default without clobbering a picture chosen later through
+# the dashboard's picker, which writes to this same path.
+- name: Seed a default profile picture
+  become: false
+  copy:
+    src: face.png
+    dest: "{{ lookup('env', 'HOME') }}/.face"
+    mode: "0644"
+    force: no
