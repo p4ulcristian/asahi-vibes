@@ -43,6 +43,10 @@
       - fuse2
       - moonlight-qt
       - kitty
+      # Calculator + unit/currency converter. libqalculate (its backend) was
+      # already here as a caelestia dependency and powers the launcher's
+      # ">calc" mode; this adds the GUI frontend for a windowed converter.
+      - qalculate-qt
     state: latest
     update_cache: true
 
