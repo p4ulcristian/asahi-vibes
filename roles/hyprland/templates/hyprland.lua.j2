@@ -49,7 +49,10 @@ hl.config({
         layout = "dwindle",
     },
     decoration = {
-        rounding       = 8,
+        -- Match caelestia's desktop frame (border.rounding = 25) so windows
+        -- nest into its corners instead of fighting them. Change both or
+        -- neither -- caelestia draws the frame, hyprland rounds the windows.
+        rounding       = 25,
         active_opacity   = 1.0,
         inactive_opacity = 1.0,
         shadow = { enabled = true, range = 4, render_power = 3, color = 0xee1a1a1a },
