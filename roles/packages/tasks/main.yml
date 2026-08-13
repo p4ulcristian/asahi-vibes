@@ -93,5 +93,10 @@
   loop:
     - git-cola
     - zsh-theme-powerlevel10k-git
+    # VS Code cannot self-update on Linux -- its in-app updater only notifies.
+    # Listing it here means a playbook run pulls the current AUR build, which
+    # is why update.mode is "none" in the user settings: updates land on our
+    # schedule instead of nagging. Restart VS Code after an upgrade.
+    - visual-studio-code-bin
   register: yay_result
   changed_when: "'nothing to do' not in yay_result.stdout"
