@@ -1,0 +1,150 @@
+# Maintainer: local build
+pkgbase=linux-asahi-fairydust
+pkgname=("${pkgbase}" "${pkgbase}-headers")
+_branch=fairydust
+_m1n1ver=1.4.21
+pkgver=7.0.11.asahi1.fairydust
+pkgrel=1
+pkgdesc='Linux kernel (Asahi fairydust dp-alt branch)'
+arch=(aarch64)
+url='https://github.com/AsahiLinux/linux'
+license=(GPL2)
+makedepends=(
+  base-devel bc dtc kmod libelf pahole cpio perl
+  rustup rust-bindgen tar xz xmlto python
+)
+options=(!strip)
+provides=(WIREGUARD-MODULE)
+depends=(coreutils kmod initramfs "m1n1>=${_m1n1ver}")
+
+_srcdir=linux
+
+pkgver() {
+  cd "${_srcdir}"
+  local tag
+  tag=$(git describe --tags --match 'asahi-[0-9]*' --abbrev=0 2>/dev/null) || tag=$(git rev-parse --short HEAD)
+  # convert asahi-6.19.14-2 -> 6.19.14.asahi2
+  if [[ "${tag}" =~ ^asahi-([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)$ ]]; then
+    echo "${BASH_REMATCH[1]}.asahi${BASH_REMATCH[2]}.fairydust"
+  else
+    echo "0.${tag//[-]/.}"
+  fi
+}
+
+prepare() {
+  cd "${_srcdir}"
+
+  # Local patches
+  patch -Np1 -i "${srcdir}/0001-t8112-j413-enable-sio-for-dp-alt-audio.patch"
+
+  # Apply base config from running kernel (exported at PKGBUILD creation time)
+  cp "${srcdir}/config" .config
+
+  # Enable dp-alt mode options required by fairydust
+  scripts/config --module CONFIG_TYPEC_DP_ALTMODE
+  scripts/config --module CONFIG_TYPEC_NVIDIA_ALTMODE
+  scripts/config --module CONFIG_TYPEC_TBT_ALTMODE
+  scripts/config --disable CONFIG_QRTR_MHI
+  scripts/config --set-str CONFIG_LOCALVERSION "-asahi-fairydust"
+
+  # Set version metadata
+  echo "${pkgrel}" > localversion.30-pkgrel
+
+  make olddefconfig
+}
+
+build() {
+  cd "${_srcdir}"
+  make -j"$(nproc)" Image.gz modules dtbs
+}
+
+_package() {
+  pkgdesc='Linux kernel (Asahi fairydust dp-alt branch) - kernel and modules'
+
+  cd "${_srcdir}"
+
+  local kernver
+  kernver="$(make -s kernelrelease)"
+  local modulesdir="${pkgdir}/usr/lib/modules/${kernver}"
+
+  # Install modules
+  make INSTALL_MOD_PATH="${pkgdir}/usr" INSTALL_MOD_STRIP=1 modules_install
+
+  # Install kernel image (for m1n1 / systemd-boot / grub)
+  install -Dm644 arch/arm64/boot/Image.gz "${modulesdir}/vmlinuz"
+  install -Dm644 arch/arm64/boot/Image.gz "${pkgdir}/boot/vmlinuz-${pkgbase}"
+
+  # Install DTBs
+  make INSTALL_DTBS_PATH="${modulesdir}/dtb" dtbs_install
+
+  # Remove build/source symlinks
+  rm -f "${modulesdir}/build" "${modulesdir}/source"
+
+  # Install pkgbase file (used by mkinitcpio hooks)
+  echo "${pkgbase}" | install -Dm644 /dev/stdin "${modulesdir}/pkgbase"
+}
+
+_package-headers() {
+  pkgdesc='Linux kernel (Asahi fairydust dp-alt branch) - headers'
+  depends=("${pkgbase}=${pkgver}")
+
+  cd "${_srcdir}"
+
+  local builddir="${pkgdir}/usr/lib/modules/$(make -s kernelrelease)/build"
+
+  install -Dt "${builddir}" -m644 .config Makefile Module.symvers System.map \
+    localversion.30-pkgrel vmlinux
+
+  install -Dt "${builddir}/kernel" -m644 kernel/Makefile
+
+  install -Dt "${builddir}/arch/arm64" -m644 arch/arm64/Makefile
+
+  cp -t "${builddir}" -a scripts
+  cp -t "${builddir}/arch/arm64" -a arch/arm64/include
+  [[ -d arch/arm64/scripts ]] && cp -t "${builddir}/arch/arm64" -a arch/arm64/scripts
+
+  install -Dt "${builddir}/arch/arm64/kernel" -m644 arch/arm64/kernel/asm-offsets.s
+
+  install -Dt "${builddir}/include" -m644 include/Kbuild
+  cp -t "${builddir}/include" -a include/*
+
+  install -Dt "${builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # https://bugs.archlinux.org/task/13146
+  install -Dt "${builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+  install -Dt "${builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+  install -Dt "${builddir}/drivers/iio/adc" -m644 drivers/iio/adc/*.h
+
+  find . -name 'Kconfig*' | while read -r file; do
+    install -Dm644 "${file}" "${builddir}/${file}"
+  done
+
+  # Strip unnecessary architectures
+  local arch
+  for arch in "${builddir}"/arch/*/; do
+    [[ "${arch}" == */arm64/ ]] && continue
+    rm -r "${arch}"
+  done
+
+  # Remove build artifacts
+  find "${builddir}" -name '*.o' -printf 'Removing %P\n' -delete
+
+  # Fix permissions
+  chmod -Rc u=rwX,go=rX "${pkgdir}"
+}
+
+source=(
+  "git+https://github.com/AsahiLinux/linux.git#branch=${_branch}"
+  "config"
+  "0001-t8112-j413-enable-sio-for-dp-alt-audio.patch"
+)
+b2sums=('SKIP'
+        'f60369d7b798adaf0758923a1145c37e9dfbabd92cf29ee44cde817b4d6e3cdf5795db17f125967cdc11862ab6a1e3a4e79c72a186450f115fdc896ec822e507'
+        'SKIP')
+
+for _p in "${pkgname[@]}"; do
+  eval "package_${_p}() { _package${_p#${pkgbase}}; }"
+done

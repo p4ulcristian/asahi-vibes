@@ -1,0 +1,55 @@
+From: paul <p4ulcristian@gmail.com>
+Date: Wed, 11 Jun 2026 00:00:00 +0200
+Subject: [PATCH] arm64: dts: apple: t8112-j413: enable SIO for DP-alt audio
+
+The MacBook Air (M2, j413) gets DisplayPort-altmode *video* from the
+ENABLE_DCPEXT_TYPEC hack in t8112-jxxx.dtsi, which routes the front-left
+USB-C port to dcpext and enables &dpaudio1. However, unlike the j473
+Mac mini overlay, it never enables the SIO coprocessor (&sio) nor adds
+the /aliases/sio entry.
+
+m1n1 locates the SIO node via /aliases/sio in order to reserve its ASC
+firmware region and load the coprocessor firmware. Without that alias,
+m1n1's dt_setup_sio() silently skips the node, so even with status =
+"okay" the coprocessor has no firmware and apple-sio fails with
+"SIO did not boot" (-ETIME). The DP audio controller (dpaudio1) then has
+no working DMA backend and no ALSA card is registered.
+
+Add the sio alias and enable &sio/&dpaudio1, exactly as t8112-j473.dts.
+
+Signed-off-by: paul <p4ulcristian@gmail.com>
+---
+ arch/arm64/boot/dts/apple/t8112-j413.dts | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+--- a/arch/arm64/boot/dts/apple/t8112-j413.dts
++++ b/arch/arm64/boot/dts/apple/t8112-j413.dts
+@@ -279,3 +279,28 @@
+ };
+
+ #include "hwmon-laptop.dtsi"
++
++/*
++ * DisplayPort-altmode audio (USB-C DP monitors / AR glasses).
++ *
++ * The ENABLE_DCPEXT_TYPEC hack in t8112-jxxx.dtsi routes the front-left
++ * USB-C port to dcpext and enables dpaudio1, but leaves the SIO
++ * coprocessor disabled and, crucially, without an /aliases/sio entry.
++ * m1n1 locates the SIO via that alias to reserve and load its firmware;
++ * without it m1n1 skips SIO setup and the coprocessor fails to boot
++ * ("apple-sio: SIO did not boot").  Add the alias and enable the nodes,
++ * mirroring the t8112-j473 (Mac mini) overlay.
++ */
++/ {
++	aliases {
++		sio = &sio;
++	};
++};
++
++&sio {
++	status = "okay";
++};
++
++&dpaudio1 {
++	status = "okay";
++};
