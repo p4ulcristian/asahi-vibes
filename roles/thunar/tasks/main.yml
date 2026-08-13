@@ -1,0 +1,79 @@
+---
+# Thunar: thumbnails, the image preview pane, and "Open Terminal Here".
+#
+# The packages that make thumbnails possible (tumbler and its per-format
+# backends) live in the packages role; this role is only the user-level
+# configuration that turns the features on.
+
+# ---------------------------------------------------------------------------
+# xfconf.
+#
+# ONLY_LOCAL rather than ALWAYS on purpose: ALWAYS thumbnails over gvfs mounts
+# too, which means pulling whole files across sshfs/smb just to draw an icon.
+#
+# last-image-preview-visible is a "last state" key -- Thunar rewrites it on
+# exit. Setting it false only decides how a *fresh* profile starts; once the
+# pane is toggled with F7 the window remembers whatever it was left as.
+# ---------------------------------------------------------------------------
+
+- name: Configure Thunar thumbnails and image preview
+  become: false
+  community.general.xfconf:
+    channel: thunar
+    property: "{{ item.property }}"
+    value_type: "{{ item.type }}"
+    value: "{{ item.value }}"
+  loop:
+    - { property: /misc-thumbnail-mode,        type: string, value: THUNAR_THUMBNAIL_MODE_ONLY_LOCAL }
+    - { property: /last-image-preview-visible, type: bool,   value: "false" }
+    # STANDALONE gives the preview its own full-height pane; EMBEDDED tucks a
+    # small preview into the bottom of the shortcuts sidebar instead.
+    - { property: /misc-image-preview-mode,    type: string, value: THUNAR_IMAGE_PREVIEW_MODE_STANDALONE }
+
+# ---------------------------------------------------------------------------
+# Custom actions.
+#
+# The shipped default ran "exo-open --working-directory %f --launch
+# TerminalEmulator", which does nothing here: /usr/share/xfce4/helpers is
+# empty and there is no helpers.rc, so exo has no TerminalEmulator to
+# resolve. Calling kitty directly skips the whole helper indirection.
+#
+# The unique-id matters -- the F4 accelerator below is keyed to it, so the two
+# tasks have to stay in sync. That is why this file is managed rather than
+# left to the GUI editor.
+# ---------------------------------------------------------------------------
+
+- name: Deploy Thunar custom actions
+  become: false
+  copy:
+    src: uca.xml
+    dest: "{{ lookup('env', 'HOME') }}/.config/Thunar/uca.xml"
+    mode: "0644"
+    backup: yes
+
+# ---------------------------------------------------------------------------
+# Keyboard accelerators.
+#
+# Thunar ships toggle-image-preview with an EMPTY accelerator -- the pane is
+# reachable only through View > Image Preview. Its neighbours are bound (split
+# view F3, side pane F9), so F7 keeps it in the same family, and F4 for the
+# terminal matches what most other file managers use. Neither is stolen by the
+# keyd cmd layer.
+#
+# accels.scm is a GtkAccelMap dump that Thunar REWRITES on exit, so this edits
+# single lines rather than templating the file: Thunar loads our bindings into
+# its live accel map and dumps them back unchanged. Commented-out lines in
+# that file are defaults; an uncommented one is an override.
+# ---------------------------------------------------------------------------
+
+- name: Bind Thunar accelerators
+  become: false
+  lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.config/Thunar/accels.scm"
+    regexp: '^;?\s*\(gtk_accel_path "{{ item.action | regex_escape }}".*$'
+    line: '(gtk_accel_path "{{ item.action }}" "{{ item.key }}")'
+    create: true
+    mode: "0644"
+  loop:
+    - { action: "<Actions>/ThunarWindow/toggle-image-preview", key: F7 }
+    - { action: "<Actions>/ThunarActions/uca-action-1786637596390961-1", key: F4 }

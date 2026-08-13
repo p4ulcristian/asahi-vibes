@@ -186,3 +186,45 @@
     dest: "{{ lookup('env', 'HOME') }}/.face"
     mode: "0644"
     force: no
+
+# ---------------------------------------------------------------------------
+# GTK base theme.
+#
+# Caelestia only emits colours: gtk.css is a list of @define-color overrides.
+# Those names (accent_color, window_bg_color, view_bg_color, ...) are exactly
+# libadwaita's documented override variables, so GTK4 apps recolour correctly
+# on their own. GTK3 has no such mechanism -- it needs a real theme underneath
+# for the colours to land on, and adw-gtk3-dark is the one caelestia's Thunar
+# stylesheet is written against.
+#
+# The dconf keys are the part that is easy to get wrong: setting gtk-theme to
+# a theme that is not installed fails silently, falling back to built-in
+# Adwaita (light), which is what made the dark caelestia colours look broken.
+# The packages role installs adw-gtk-theme and papirus-icon-theme so both
+# names below resolve.
+# ---------------------------------------------------------------------------
+
+- name: Set the GTK theme, icon theme and colour scheme
+  become: false
+  community.general.dconf:
+    key: "/org/gnome/desktop/interface/{{ item.key }}"
+    value: "'{{ item.value }}'"
+    state: present
+  loop:
+    - { key: gtk-theme,    value: adw-gtk3-dark }
+    - { key: icon-theme,   value: Papirus-Dark }
+    - { key: color-scheme, value: prefer-dark }
+
+# Belt and braces for GTK3 apps that read settings.ini directly rather than
+# going through xdg-desktop-portal-gtk / dconf. Caelestia never writes this
+# file (its templates only produce gtk.css), so there is nothing to clobber.
+- name: Configure GTK3 settings.ini
+  become: false
+  copy:
+    dest: "{{ lookup('env', 'HOME') }}/.config/gtk-3.0/settings.ini"
+    mode: "0644"
+    content: |
+      [Settings]
+      gtk-theme-name=adw-gtk3-dark
+      gtk-icon-theme-name=Papirus-Dark
+      gtk-application-prefer-dark-theme=1

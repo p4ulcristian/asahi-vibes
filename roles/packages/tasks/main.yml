@@ -27,6 +27,29 @@
       - hyprlock
       - hypridle
       - thunar
+      # Thunar does no thumbnailing itself -- it hands every thumbnail request
+      # to tumbler over D-Bus, and tumbler is only an *optional* dependency.
+      # Without it Thunar silently shows generic MIME icons for everything,
+      # which reads as "previews are broken" rather than "a package is
+      # missing". The rest are tumbler's own optdeps: one per format family.
+      - tumbler
+      - ffmpegthumbnailer   # video
+      - poppler-glib        # PDF
+      - libgsf              # ODF
+      - libgepub            # EPUB
+      - libopenraw          # RAW photos
+      - webp-pixbuf-loader  # webp (display as well as thumbnails)
+      # GTK3 has no libadwaita-style recolouring mechanism, so caelestia paints
+      # Thunar with a hand-written stylesheet (~/.config/gtk-3.0/thunar.css)
+      # that assumes an adwaita-shaped base theme underneath. Stock GTK3
+      # Adwaita is LIGHT unless told otherwise, which left dark caelestia
+      # colours sitting on light widgets. adw-gtk-theme ships the
+      # adw-gtk3-dark that the dconf key below actually names -- without it
+      # /usr/share/themes is empty and the name silently falls back.
+      - adw-gtk-theme
+      # Likewise: the icon-theme key names Papirus-Dark, so it has to exist or
+      # Thunar renders generic Adwaita fallback icons.
+      - papirus-icon-theme
       - polkit-gnome
       - ttf-jetbrains-mono-nerd
       - noto-fonts-emoji
