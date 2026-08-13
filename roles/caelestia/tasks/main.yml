@@ -136,14 +136,14 @@
 - name: Create wallpaper dir
   become: false
   file:
-    path: "{{ lookup('env', 'HOME') }}/pictures/wallpapers"
+    path: "{{ lookup('env', 'HOME') }}/media/pictures/wallpapers"
     state: directory
 
 - name: Download Everforest wallpapers
   become: false
   get_url:
     url: "https://raw.githubusercontent.com/Apeiros-46B/everforest-walls/main/{{ item.src }}"
-    dest: "{{ lookup('env', 'HOME') }}/pictures/wallpapers/{{ item.name }}.png"
+    dest: "{{ lookup('env', 'HOME') }}/media/pictures/wallpapers/{{ item.name }}.png"
     mode: "0644"
   loop:
     - { name: green-forest,     src: "nature/green_forest_1.png" }
@@ -170,7 +170,7 @@
 - name: Set the wallpaper if it is still the packaged default
   become: false
   command: >-
-    caelestia wallpaper -f {{ lookup('env', 'HOME') }}/pictures/wallpapers/foggy-valley.png
+    caelestia wallpaper -f {{ lookup('env', 'HOME') }}/media/pictures/wallpapers/foggy-valley.png
   when:
     - current_wallpaper.rc == 0
     - "'/etc/xdg/quickshell' in current_wallpaper.stdout"

@@ -13,7 +13,7 @@
 set -uo pipefail
 
 mode="${1:-region}"
-dir="$HOME/pictures/screenshots"
+dir="$HOME/media/pictures/screenshots"
 mkdir -p "$dir"
 file="$dir/screenshot_$(date +%Y%m%d_%H%M%S).png"
 

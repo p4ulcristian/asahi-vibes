@@ -12,11 +12,11 @@
 #   - a region you drag with slurp
 #   - the currently focused window
 #
-# Recordings are written to ~/videos/recordings as .mp4.
+# Recordings are written to ~/media/videos/recordings as .mp4.
 # Waybar is poked with SIGRTMIN+8 so its indicator updates immediately.
 set -uo pipefail
 
-dir="$HOME/videos/recordings"
+dir="$HOME/media/videos/recordings"
 pidfile="/tmp/wf-recorder.pid"
 statefile="/tmp/wf-recorder.current"
 WAYBAR_SIGNAL="RTMIN+8"
